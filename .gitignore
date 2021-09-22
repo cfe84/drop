@@ -1,2 +1,3 @@
-/target
+target
 testdb.sqlite3
+bower_components

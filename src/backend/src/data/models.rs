@@ -1,23 +1,32 @@
 use super::schema::{clients, cryptograms, drops};
 
-#[derive(Insertable)]
+#[derive(Insertable, Queryable, Serialize, Clone)]
 #[table_name = "clients"]
-pub struct NewClient<'a> {
-  pub alias: &'a str,
-  pub public_certificate: &'a str,
-}
-
-#[derive(Queryable, Serialize)]
 pub struct Client {
-  pub id: i32,
   pub alias: String,
   pub public_certificate: String,
 }
 
-// #[derive(Insertable)]
-// #[table_name = "cryptograms"]
-// pub struct NewCryptogram<'a> {
-//   pub encrypted_text: &'a str,
-//   pub created_date: &'a NaiveDate,
-//   pub expiration_date: &'a NaiveDate,
-// }
+#[derive(Insertable, Queryable, Serialize)]
+#[table_name = "drops"]
+pub struct Drop {
+  pub client_alias: String,
+  pub cryptogram_id: String,
+  pub encrypted_key: String,
+  pub id: String,
+}
+
+#[derive(Insertable, Queryable, Serialize)]
+#[table_name = "cryptograms"]
+pub struct Cryptogram {
+  pub encrypted_text: String,
+  pub id: String,
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct CompositeDrop {
+  pub encrypted_text: String,
+  pub encrypted_key: String,
+  pub client_alias: String,
+  pub drop_id: Option<String>,
+}

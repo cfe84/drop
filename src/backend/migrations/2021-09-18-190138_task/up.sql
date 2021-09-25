@@ -1,22 +1,24 @@
 CREATE TABLE clients (
-    id INTEGER NOT NULL,
     alias TEXT NOT NULL,
     public_certificate TEXT NOT NULL,
-    PRIMARY KEY (id)
+    UNIQUE(alias)
+    PRIMARY KEY (alias)
 );
 
 CREATE TABLE drops (
-    id INTEGER NOT NULL,
-    client_id INTEGER NOT NULL,
+    id TEXT NOT NULL,
+    client_alias TEXT NOT NULL,
     encrypted_key TEXT NOT NULL,
-    cryptogram_id INTEGER NOT NULL,
+    cryptogram_id TEXT NOT NULL,
+    UNIQUE(id)
     PRIMARY KEY (id)
 );
 
 CREATE TABLE cryptograms (
-  id INTEGER NOT NULL,
+  id TEXT NOT NULL,
   encrypted_text TEXT NOT NULL,
-  created_date DATE NOT NULL,
-  expiration_date DATE,
+  -- created_date DATE NOT NULL,
+  -- expiration_date DATE,
+  UNIQUE (id)
   PRIMARY KEY (id)
 )

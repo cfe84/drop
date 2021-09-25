@@ -1,6 +1,5 @@
 table! {
-    clients (id) {
-        id -> Integer,
+    clients (alias) {
         alias -> Text,
         public_certificate -> Text,
     }
@@ -8,19 +7,17 @@ table! {
 
 table! {
     cryptograms (id) {
-        id -> Integer,
+        id -> Text,
         encrypted_text -> Text,
-        created_date -> Date,
-        expiration_date -> Nullable<Date>,
     }
 }
 
 table! {
     drops (id) {
-        id -> Integer,
-        client_id -> Integer,
+        id -> Text,
+        client_alias -> Text,
         encrypted_key -> Text,
-        cryptogram_id -> Integer,
+        cryptogram_id -> Text,
     }
 }
 

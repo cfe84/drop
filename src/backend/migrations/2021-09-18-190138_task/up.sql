@@ -19,6 +19,7 @@ CREATE TABLE drops (
 CREATE TABLE cryptograms (
   id TEXT NOT NULL,
   encrypted_text TEXT NOT NULL,
+  content_type TEXT NOT NULL,
   -- created_date DATE NOT NULL,
   -- expiration_date DATE,
   UNIQUE (id)

@@ -15,6 +15,7 @@ use rocket::Request;
 use rocket::Response;
 use rocket_contrib::json;
 use rocket_contrib::json::*;
+use rocket_contrib::serve::StaticFiles;
 
 #[derive(Debug)]
 struct ApiResponse {
@@ -38,13 +39,13 @@ struct ClientPostResponse {
 
 #[derive(Deserialize)]
 struct ClientPostRequest<'t> {
-  certificate: &'t str,
+  publicKey: &'t str,
 }
 
 #[post("/clients", format = "application/json", data = "<client>")]
 fn clients_post(client: Json<ClientPostRequest<'_>>) -> ApiResponse {
   let conn = establish_connection();
-  let client = create_client(&conn, &client.certificate);
+  let client = create_client(&conn, &client.publicKey);
   ApiResponse {
     data: json!({
       "result": "success",
@@ -99,5 +100,6 @@ fn main() {
       "/api",
       routes![client_get, clients_post, drops_post, get_client_drops],
     )
+    .mount("/", StaticFiles::from("..\\frontend"))
     .launch();
 }

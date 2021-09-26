@@ -9,6 +9,7 @@ table! {
     cryptograms (id) {
         id -> Text,
         encrypted_text -> Text,
+        content_type -> Text,
     }
 }
 

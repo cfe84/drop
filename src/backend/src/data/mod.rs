@@ -52,6 +52,7 @@ pub fn create_drop(connection: &SqliteConnection, compositeDrop: &CompositeDrop)
   let cryptogram = Cryptogram {
     id: String::clone(&cryptogram_id),
     encrypted_text: String::clone(&compositeDrop.encrypted_text),
+    content_type: String::from("text/plain"),
   };
   let drop = Drop {
     client_alias: String::clone(&compositeDrop.client_alias),
@@ -110,10 +111,6 @@ pub fn query_drops(connection: &SqliteConnection, for_alias: &str) -> Vec<models
   corresponding_drops
     .into_iter()
     .map(|drop| {
-      println!(
-        "Cryptogram id: {}, id: {}, alias: {}",
-        drop.cryptogram_id, drop.id, drop.client_alias
-      );
       let cryptogram_candidate = query_cryptograms(connection, &drop.cryptogram_id);
       match cryptogram_candidate {
         Some(cryptogram) => CompositeDrop {

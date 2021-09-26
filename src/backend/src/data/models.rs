@@ -21,6 +21,7 @@ pub struct Drop {
 pub struct Cryptogram {
   pub id: String,
   pub encrypted_text: String,
+  pub content_type: String,
 }
 
 #[derive(Deserialize, Serialize)]

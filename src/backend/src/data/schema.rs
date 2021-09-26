@@ -21,6 +21,9 @@ table! {
     }
 }
 
+joinable!(drops -> clients (client_alias));
+joinable!(drops -> cryptograms (cryptogram_id));
+
 allow_tables_to_appear_in_same_query!(
     clients,
     cryptograms,

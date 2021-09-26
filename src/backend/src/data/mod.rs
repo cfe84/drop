@@ -1,6 +1,7 @@
 pub mod models;
 pub mod schema;
 
+use diesel::helper_types::Filter;
 use diesel::{prelude::*, sqlite::SqliteConnection};
 use models::*;
 use uuid::Uuid;
@@ -74,12 +75,60 @@ pub fn create_drop(connection: &SqliteConnection, compositeDrop: &CompositeDrop)
   }
 }
 
-// pub fn query_drops(
-//   connection: &SqliteConnection,
-//   client_alias: &str,
-// ) -> Vec<models::CompositeDrop> {
-//   schema::drop::table.
-//   // schema::dr::table
-//   //   .load::<models::Client>(connection)
-//   //   .expect("Couldn't retrieve clients")
-// }
+pub fn query_cryptograms(
+  connection: &SqliteConnection,
+  cryptogram_id: &String,
+) -> Option<Cryptogram> {
+  use schema::cryptograms::dsl::*;
+  let corresponding_cryptograms = cryptograms
+    .filter(id.eq(cryptogram_id))
+    .load::<Cryptogram>(connection)
+    .expect("Error while retrieving drops");
+  if corresponding_cryptograms.len() != 1 {
+    return None;
+  }
+  let cryptogram = Clone::clone(&corresponding_cryptograms[0]);
+  return Some(cryptogram);
+}
+
+pub fn query_drops(connection: &SqliteConnection, for_alias: &str) -> Vec<models::CompositeDrop> {
+  use schema::drops::dsl::*;
+  // let corresponding_drops = drops
+  //   .inner_join(cryptograms::table)
+  //   .filter(drops::client_alias.eq(client_alias))
+  //   .select((
+  //     drops::encrypted_key,
+  //     drops::client_alias,
+  //     cryptograms::encrypted_text,
+  //   ))
+  //   .load(connection)
+  //   .expect("Error while retrieving drops");
+  let corresponding_drops = drops
+    .filter(client_alias.eq(for_alias))
+    .load::<Drop>(connection)
+    .expect("Error while retrieving drops");
+  corresponding_drops
+    .into_iter()
+    .map(|drop| {
+      println!(
+        "Cryptogram id: {}, id: {}, alias: {}",
+        drop.cryptogram_id, drop.id, drop.client_alias
+      );
+      let cryptogram_candidate = query_cryptograms(connection, &drop.cryptogram_id);
+      match cryptogram_candidate {
+        Some(cryptogram) => CompositeDrop {
+          client_alias: drop.client_alias,
+          encrypted_key: drop.encrypted_key,
+          encrypted_text: String::clone(&(cryptogram.encrypted_text)),
+          drop_id: Some(drop.id),
+        },
+        None => CompositeDrop {
+          client_alias: drop.client_alias,
+          encrypted_key: drop.encrypted_key,
+          encrypted_text: format!("Cryptogram not found for drop {}", drop.cryptogram_id),
+          drop_id: Some(drop.id),
+        },
+      }
+    })
+    .collect()
+}

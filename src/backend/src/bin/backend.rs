@@ -7,7 +7,7 @@ extern crate serde;
 extern crate serde_json;
 
 use drop::data::models::*;
-use drop::data::{create_client, create_drop, establish_connection, get_client};
+use drop::data::{create_client, create_drop, establish_connection, get_client, query_drops};
 use rocket::http::{ContentType, Status};
 use rocket::response;
 use rocket::response::Responder;
@@ -83,8 +83,21 @@ fn drops_post(drop: Json<CompositeDrop>) -> ApiResponse {
   }
 }
 
+#[get("/clients/<alias>/drops")]
+fn get_client_drops(alias: String) -> ApiResponse {
+  let conn = establish_connection();
+  let drops_result = query_drops(&conn, &alias);
+  ApiResponse {
+    data: json!({"result": "success", "data": drops_result}),
+    status: Status::Ok,
+  }
+}
+
 fn main() {
   rocket::ignite()
-    .mount("/api", routes![client_get, clients_post, drops_post])
+    .mount(
+      "/api",
+      routes![client_get, clients_post, drops_post, get_client_drops],
+    )
     .launch();
 }

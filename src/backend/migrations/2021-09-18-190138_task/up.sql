@@ -12,6 +12,8 @@ CREATE TABLE drops (
     cryptogram_id TEXT NOT NULL,
     UNIQUE(id)
     PRIMARY KEY (id)
+    FOREIGN key (cryptogram_id) references cryptograms(id)
+    FOREIGN key (client_alias) references clients(alias)
 );
 
 CREATE TABLE cryptograms (

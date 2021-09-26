@@ -1,33 +1,39 @@
-import { ApiConnector } from "./apiConnector.js";
-import { Component } from "./lib/preact.module.js"
-import { html } from "./html.js"
+import { LocalClientNotInitializedError } from "./errors.js"
+import { apiConnector } from "./apiConnector.js";
 
-export class Client {
-  alias
-  publicCertificate
+const PRIVATE_CERTIFICATE_KEY = "drop.privateCertificate"
+const PUBLIC_CERTIFICATE_KEY = "drop.publicCertificate"
+const ALIAS_KEY = "drop.alias"
+
+export function loadLocalClient() {
+  const privateCertificate = localStorage.getItem(PRIVATE_CERTIFICATE_KEY)
+  const publicCertificate = localStorage.getItem(PUBLIC_CERTIFICATE_KEY)
+  const alias = localStorage.getItem(ALIAS_KEY)
+  if (!privateCertificate || !publicCertificate || !alias) {
+    return null
+  }
+  return createClient(privateCertificate, publicCertificate, alias)
 }
 
-export class ClientListComponent extends Component {
-  state = { customers: [] };
-  apiConnector = new ApiConnector();
-
-  componentDidMount() {
-    console.log(`Trying to get state`)
-    getClientsAsync(this.apiConnector).then(clients => {
-      console.log(`Got state`)
-      this.setState({ customers: clients })
-    })
-  }
-
-  render() {
-    const customers = this.state.customers.map(customer => {
-      return html`<span>${customer.alias}</span>`
-    })
-    return html`<div>${customers}</span>`
-  }
+export async function registerAsClientAsync() {
+  const connector = apiConnector()
+  const publicCertificate = "My certificate"
+  const privateCertificate = "Private cert"
+  const alias = await connector.createClientAsync(publicCertificate)
+  const client = createClient(privateCertificate, publicCertificate, alias)
+  client.save()
+  return client
 }
 
-export async function getClientsAsync(apiConnector) {
-  const clients = await apiConnector.sendQueryAsync("clients")
-  return clients
+export function createClient(privateCertificate, publicCertificate, alias) {
+  function save() {
+    localStorage.setItem(PRIVATE_CERTIFICATE_KEY, privateCertificate)
+    localStorage.setItem(PUBLIC_CERTIFICATE_KEY, publicCertificate)
+    localStorage.setItem(ALIAS_KEY, alias)
+  }
+  return {
+    alias,
+    publicCertificate,
+    save
+  }
 }

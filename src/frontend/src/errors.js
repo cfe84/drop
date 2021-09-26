@@ -1,0 +1,1 @@
+export const LocalClientNotInitializedError = Error("Local client is not initialized")

@@ -18,7 +18,7 @@ function app() {
 
   function run() {
     const client = loadLocalClient()
-    const sendMessagePage = sendMessagePageComponent({ onBack: run })
+    const sendMessagePage = sendMessagePageComponent({ onBack: () => run() })
     const homePage = homePageComponent({ client, onSendMessage: () => { load(sendMessagePage) } })
     const welcomePage = welcomePageComponent({ onRegistered: run, onSendMessage: () => load(sendMessagePage) })
     if (client) {

@@ -1,6 +1,7 @@
 table! {
     clients (alias) {
         alias -> Text,
+        pass -> Text,
         public_certificate -> Text,
     }
 }

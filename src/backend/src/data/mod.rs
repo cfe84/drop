@@ -15,10 +15,15 @@ pub fn establish_connection() -> SqliteConnection {
   SqliteConnection::establish(db).unwrap_or_else(|_| panic!("Error connecting to {}", db))
 }
 
-pub fn create_client(connection: &SqliteConnection, public_certificate: &str) -> Client {
+pub fn create_client(
+  connection: &SqliteConnection,
+  public_certificate: &str,
+  pass: &str,
+) -> Client {
   let alias = newGuid();
   let client = Client {
     alias,
+    pass: String::from(pass),
     public_certificate: String::from(public_certificate),
   };
 

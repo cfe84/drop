@@ -1,5 +1,6 @@
 CREATE TABLE clients (
     alias TEXT NOT NULL,
+    pass TEXT NOT NULL,
     public_certificate TEXT NOT NULL,
     UNIQUE(alias)
     PRIMARY KEY (alias)

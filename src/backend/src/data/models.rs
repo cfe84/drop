@@ -4,6 +4,7 @@ use super::schema::{clients, cryptograms, drops};
 #[table_name = "clients"]
 pub struct Client {
   pub alias: String,
+  pub pass: String,
   pub public_certificate: String,
 }
 

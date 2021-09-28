@@ -1,4 +1,3 @@
-
 import { html } from "./html.js"
 import { registerAsClientAsync } from "./client.js"
 

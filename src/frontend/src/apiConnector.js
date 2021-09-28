@@ -1,38 +1,52 @@
-export function apiConnector() {
-  function sendQueryAsync(url, method = "GET", body = undefined, headers = {}) {
-    return new Promise((resolve, reject) => {
-      const request = new XMLHttpRequest()
-      request.onreadystatechange = function () {
-        if (this.readyState === 4) {
-          const response = JSON.parse(this.responseText)
-          if (response.result === "success") {
-            resolve(response.data)
-          } else {
-            reject(response.error)
-          }
+function sendQueryAsync(url, method = "GET", body = undefined, headers = {}) {
+  return new Promise((resolve, reject) => {
+    const request = new XMLHttpRequest()
+    request.onreadystatechange = function () {
+      if (this.readyState === 4) {
+        const response = JSON.parse(this.responseText)
+        if (response.result === "success") {
+          resolve(response.data)
+        } else {
+          reject(Error(response.error))
         }
       }
-      request.open(method, `http://localhost:8000/api/${url}`, true)
-      Object.keys(headers).forEach(header => {
-        console.log(`Header: ${header}`)
-        request.setRequestHeader(header, headers[header])
-      })
-      if (body) {
-        request.setRequestHeader("content-type", "application/json")
-      }
-      request.send(body ? JSON.stringify(body) : undefined)
+    }
+    request.open(method, `http://localhost:8000/api/${url}`, true)
+    Object.keys(headers).forEach(header => {
+      request.setRequestHeader(header, headers[header])
     })
-  }
+    if (body) {
+      request.setRequestHeader("content-type", "application/json")
+    }
+    request.send(body ? JSON.stringify(body) : undefined)
+  })
+}
 
-  async function createClientAsync(publicKey) {
-    const res = await sendQueryAsync("clients", "POST", {
-      publicKey
-    })
-    const alias = res.alias
-    return alias
-  }
+export async function createClientAsync(pass, publicKey) {
+  const res = await sendQueryAsync("clients", "POST", {
+    publicKey,
+    pass
+  })
+  const alias = res.alias
+  return alias
+}
 
-  return {
-    createClientAsync
+export async function getClientAsync(alias) {
+  const client = await sendQueryAsync(`clients/${alias}`, "GET")
+  return client
+}
+
+export async function createDropAsync({ alias, encryptedKey, encryptedContent }) {
+  const dropContent = {
+    client_alias: alias,
+    encrypted_text: encryptedContent,
+    encrypted_key: encryptedKey
   }
+  const drop = await sendQueryAsync(`drops`, "POST", dropContent)
+  return drop
+}
+
+export async function getDropsAsync({ alias, pass }) {
+  const drops = await sendQueryAsync(`clients/${alias}/drops`, "GET", undefined, { pass })
+  return drops
 }

@@ -8,7 +8,6 @@ function app() {
   let main = null
 
   function load(component) {
-    console.log(component)
     if (main) {
       document.body.removeChild(main)
     }
@@ -16,12 +15,16 @@ function app() {
     document.body.appendChild(main)
   }
 
+  function loader(component) {
+    return () => load(component)
+  }
+
   function run() {
     const client = loadLocalClient()
-    const sendMessagePage = sendMessagePageComponent({ onBack: () => run() })
-    const homePage = homePageComponent({ client, onSendMessage: () => { load(sendMessagePage) } })
-    const welcomePage = welcomePageComponent({ onRegistered: run, onSendMessage: () => load(sendMessagePage) })
+    const sendMessagePage = sendMessagePageComponent({ onBack: run })
+    const welcomePage = welcomePageComponent({ onRegistered: run, onSendMessage: loader(sendMessagePage) })
     if (client) {
+      const homePage = homePageComponent({ client, onSendMessage: loader(sendMessagePage), onDeregistered: run })
       load(homePage)
     } else {
       load(welcomePage)

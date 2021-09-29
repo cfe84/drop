@@ -60,6 +60,7 @@ pub fn create_drop(connection: &SqliteConnection, compositeDrop: &CompositeDrop)
     content_type: String::from("text/plain"),
   };
   let drop = Drop {
+    from_alias: String::clone(&compositeDrop.from_alias),
     client_alias: String::clone(&compositeDrop.client_alias),
     cryptogram_id: String::clone(&cryptogram_id),
     encrypted_key: String::clone(&compositeDrop.encrypted_key),
@@ -74,6 +75,7 @@ pub fn create_drop(connection: &SqliteConnection, compositeDrop: &CompositeDrop)
     .execute(connection)
     .expect("Error inserting new drop");
   CompositeDrop {
+    from_alias: String::clone(&compositeDrop.from_alias),
     client_alias: String::clone(&compositeDrop.client_alias),
     drop_id: Some(drop_id),
     encrypted_key: String::clone(&compositeDrop.encrypted_key),
@@ -119,12 +121,14 @@ pub fn query_drops(connection: &SqliteConnection, for_alias: &str) -> Vec<models
       let cryptogram_candidate = query_cryptograms(connection, &drop.cryptogram_id);
       match cryptogram_candidate {
         Some(cryptogram) => CompositeDrop {
+          from_alias: drop.from_alias,
           client_alias: drop.client_alias,
           encrypted_key: drop.encrypted_key,
           encrypted_text: String::clone(&(cryptogram.encrypted_text)),
           drop_id: Some(drop.id),
         },
         None => CompositeDrop {
+          from_alias: drop.from_alias,
           client_alias: drop.client_alias,
           encrypted_key: drop.encrypted_key,
           encrypted_text: format!("Cryptogram not found for drop {}", drop.cryptogram_id),

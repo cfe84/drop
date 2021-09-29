@@ -17,13 +17,13 @@ table! {
 table! {
     drops (id) {
         id -> Text,
+        from_alias -> Text,
         client_alias -> Text,
         encrypted_key -> Text,
         cryptogram_id -> Text,
     }
 }
 
-joinable!(drops -> clients (client_alias));
 joinable!(drops -> cryptograms (cryptogram_id));
 
 allow_tables_to_appear_in_same_query!(

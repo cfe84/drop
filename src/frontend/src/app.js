@@ -21,12 +21,12 @@ function app() {
 
   function run() {
     const client = loadLocalClient()
-    const sendMessagePage = sendMessagePageComponent({ onBack: run })
-    const welcomePage = welcomePageComponent({ onRegistered: run, onSendMessage: loader(sendMessagePage) })
     if (client) {
+      const sendMessagePage = sendMessagePageComponent({ fromAlias: client.alias, onBack: run })
       const homePage = homePageComponent({ client, onSendMessage: loader(sendMessagePage), onDeregistered: run })
       load(homePage)
     } else {
+      const welcomePage = welcomePageComponent({ onRegistered: run, onSendMessage: loader(sendMessagePageComponent({ fromAlias: "(anonymous)", onBack: run })) })
       load(welcomePage)
     }
   }

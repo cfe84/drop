@@ -1,7 +1,7 @@
 import { h } from './lib/preact.module.js';
 import htm from './lib/htm.module.js';
 
-function createElement(tag, properties, ...children) {
+export function createElement(tag, properties, ...children) {
   const elt = document.createElement(tag)
 
   if (properties) {
@@ -17,7 +17,11 @@ function createElement(tag, properties, ...children) {
     if (typeof (child) === "string") {
       child = document.createTextNode(child)
     }
-    elt.appendChild(child)
+    if (Array.isArray(child)) {
+      child.forEach(subChild => elt.appendChild(subChild))
+    } else {
+      elt.appendChild(child)
+    }
   })
   return elt
 }

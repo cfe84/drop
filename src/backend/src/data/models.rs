@@ -12,6 +12,7 @@ pub struct Client {
 #[table_name = "drops"]
 pub struct Drop {
   pub id: String,
+  pub from_alias: String,
   pub client_alias: String,
   pub encrypted_key: String,
   pub cryptogram_id: String,
@@ -29,6 +30,7 @@ pub struct Cryptogram {
 pub struct CompositeDrop {
   pub encrypted_text: String,
   pub encrypted_key: String,
+  pub from_alias: String,
   pub client_alias: String,
   pub drop_id: Option<String>,
 }

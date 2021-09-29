@@ -3,11 +3,15 @@ function sendQueryAsync(url, method = "GET", body = undefined, headers = {}) {
     const request = new XMLHttpRequest()
     request.onreadystatechange = function () {
       if (this.readyState === 4) {
-        const response = JSON.parse(this.responseText)
-        if (response.result === "success") {
-          resolve(response.data)
-        } else {
-          reject(Error(response.error))
+        try {
+          const response = JSON.parse(this.responseText)
+          if (response.result === "success") {
+            resolve(response.data)
+          } else {
+            reject(Error(response.error))
+          }
+        } catch (err) {
+          reject(Error(this.responseText))
         }
       }
     }
@@ -36,9 +40,10 @@ export async function getClientAsync(alias) {
   return client
 }
 
-export async function createDropAsync({ alias, encryptedKey, encryptedContent }) {
+export async function createDropAsync({ fromAlias, toAlias, encryptedKey, encryptedContent }) {
   const dropContent = {
-    client_alias: alias,
+    from_alias: fromAlias,
+    client_alias: toAlias,
     encrypted_text: encryptedContent,
     encrypted_key: encryptedKey
   }

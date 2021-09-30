@@ -62,8 +62,8 @@ fn clients_post(client: Json<ClientPostRequest<'_>>) -> ApiResponse {
 
 #[get("/clients/<alias>")]
 fn client_get(alias: String) -> ApiResponse {
-  let wait_time = time::Duration::from_secs(1);
-  thread::sleep(wait_time);
+  // let wait_time = time::Duration::from_secs(1);
+  // thread::sleep(wait_time);
   let conn = establish_connection();
   let client_result = get_client(&conn, &alias);
   match client_result {

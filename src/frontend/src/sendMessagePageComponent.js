@@ -4,7 +4,7 @@ import { sendEncryptedDropAsync } from "./drop.js"
 
 
 
-export function sendMessagePageComponent({ fromAlias, onBack }) {
+export function sendMessagePageComponent({ client, onBack }) {
 
   const aliasInput = html`<input type="text" class="form-control" placeholder="Alias" aria-label="Alias" aria-describedby="basic-addon1" />`
   const messageInput = html`<textarea class="form-control" rows="5" aria-label="With textarea"></textarea>`
@@ -12,7 +12,7 @@ export function sendMessagePageComponent({ fromAlias, onBack }) {
   const sendMessage = () => {
     const toAlias = aliasInput.value
     const message = messageInput.value
-    sendEncryptedDropAsync(fromAlias, toAlias, message).then(() => { onBack() })
+    sendEncryptedDropAsync(client, toAlias, message).then(() => { onBack() })
   }
 
   return html`

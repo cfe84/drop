@@ -5,11 +5,9 @@ import { getDecryptedDropsAsync } from "./drop.js"
 
 function dropComponent({ fromAlias, decryptedContent }) {
   return html`
-<div class="list-group-item list-group-item-action py-3 lh-tight">
-  <div class="d-flex w-100 align-items-center justify-content-between">
-    <strong class="mb-1">${fromAlias}</strong>
-    <small>${decryptedContent}</small>
-  </div>
+<div class="text-start list-group-item list-group-item-action py-3 lh-tight">
+    <div><strong class="mb-1">From ${fromAlias}</strong>:</div>
+    <div><small>${decryptedContent}</small></div>
 </div>
 `
 }
@@ -40,6 +38,7 @@ export function homePageComponent({ client, onSendMessage, onDeregistered }) {
   })
 
   const copyAliasBtn = html`<button class="btn btn-outline-secondary" type="button" id="button-addon2">Copy</button>`
+  copyAliasBtn.onclick = () => window.clipboardData.setData("Text", client.alias);
 
   return html`
 <div class="col-lg-6 mx-auto px-4 my-5 text-center">

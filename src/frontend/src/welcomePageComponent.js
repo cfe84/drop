@@ -18,7 +18,7 @@ export function welcomePageComponent({ onRegistered, onSendMessage }) {
       You can also just send an encrypted message to someone by using their alias.</p>
       <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
         <button type="button" onclick=${onRegisterClick} class="btn btn-primary btn-lg px-4 gap-3">Register as client</button>
-        <button type="button" onclick=${onSendMessage} class="btn btn-outline-secondary btn-lg px-4">Send message</button>
+        <button type="button" disabled onclick=${onSendMessage} class="btn btn-outline-secondary btn-lg px-4">Send message</button>
       </div>
     </div>
   </div>`

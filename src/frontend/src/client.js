@@ -1,5 +1,5 @@
 import { createClientAsync } from "./apiConnector.js";
-import { createKeyPair, createPass } from "./encryption.js";
+import { createKeyPairAsync, createPass } from "./encryption.js";
 
 const PRIVATE_CERTIFICATE_KEY = "drop.privateCertificate"
 const PUBLIC_CERTIFICATE_KEY = "drop.publicCertificate"
@@ -18,7 +18,7 @@ export function loadLocalClient() {
 }
 
 export async function registerAsClientAsync() {
-  const keyPair = createKeyPair()
+  const keyPair = await createKeyPairAsync()
   const pass = createPass()
   const publicCertificate = keyPair.publicKey
   const privateCertificate = keyPair.privateKey

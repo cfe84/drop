@@ -1,4 +1,3 @@
-import { html } from './html.js';
 import { loadLocalClient } from './client.js';
 import { welcomePageComponent } from './welcomePageComponent.js';
 import { homePageComponent } from './homePageComponent.js';
@@ -22,11 +21,11 @@ function app() {
   function run() {
     const client = loadLocalClient()
     if (client) {
-      const sendMessagePage = sendMessagePageComponent({ fromAlias: client.alias, onBack: run })
+      const sendMessagePage = sendMessagePageComponent({ client, onBack: run })
       const homePage = homePageComponent({ client, onSendMessage: loader(sendMessagePage), onDeregistered: run })
       load(homePage)
     } else {
-      const welcomePage = welcomePageComponent({ onRegistered: run, onSendMessage: loader(sendMessagePageComponent({ fromAlias: "(anonymous)", onBack: run })) })
+      const welcomePage = welcomePageComponent({ onRegistered: run })
       load(welcomePage)
     }
   }

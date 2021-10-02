@@ -95,10 +95,10 @@ export function createPass() {
 }
 
 /**
- * Create a single use encryption key meant to encrypt content
+ * Create a single use CEK (Content Encryption Key) meant to encrypt content
  * @returns AES CryptoKey
  */
-async function createSingleUseKeyAsync() {
+async function createSingleUseCEKAsync() {
   const key = await subtle.generateKey({
     name: "AES-GCM",
     length: AES_KEY_LENGTH,
@@ -118,7 +118,7 @@ async function encryptContentAsync(content, encryptionKey = null) {
   const bytes = encoder.encode(content)
 
   if (!encryptionKey) {
-    encryptionKey = await createSingleUseKeyAsync()
+    encryptionKey = await createSingleUseCEKAsync()
   }
 
   const iv = window.crypto.getRandomValues(new Uint8Array(AES_IV_LENGTH))
@@ -162,12 +162,12 @@ async function deriveKek(theirPublicKeySerialized, myPrivateKeySerialized) {
  * Encrypt AES key using the KEK derived from ECDH key pair
  * @param {Other party's public ECDH key, serialized as b64-jwk} theirPublicKeySerialized 
  * @param {My private ECDH key, serialized as b64-jwk} myPrivateKeySerialized 
- * @param {AES key used to encrypt content, that will be encrypted with the KEK} encryptionKey 
+ * @param {AES key used to encrypt content (CEK), that will be encrypted with the KEK} encryptedCEK 
  * @returns Encryption key encrypted with KEK and serialized to string
  */
-async function encryptKeyAsync(theirPublicKeySerialized, myPrivateKeySerialized, encryptionKey) {
+async function encryptKeyAsync(theirPublicKeySerialized, myPrivateKeySerialized, encryptedCEK) {
   const kek = await deriveKek(theirPublicKeySerialized, myPrivateKeySerialized)
-  const serializedEncryptionKey = await serializeKeyAsync(encryptionKey)
+  const serializedEncryptionKey = await serializeKeyAsync(encryptedCEK)
   const { serializedContent } = await encryptContentAsync(serializedEncryptionKey, kek)
   return serializedContent
 }
@@ -176,29 +176,29 @@ async function encryptKeyAsync(theirPublicKeySerialized, myPrivateKeySerialized,
  * Decrypt AES key that was encrypted with AES using KEK derived from ECDH key pair
  * @param {Other party's public ECDH key, serialized as b64-jwk} theirPublicKeySerialized 
  * @param {My private ECDH key, serialized as b64-jwk} myPrivateKeySerialized 
- * @param {AES content encryption key, encrypted with KEK} encryptedKey 
+ * @param {AES CEK (content encryption key), encrypted with KEK} encryptedCEK 
  * @returns AES CryptoKey, that can be used to decrypt content
  */
-async function decryptKeyAsync(theirPublicKeySerialized, myPrivateKeySerialized, encryptedKey) {
+async function decryptKeyAsync(theirPublicKeySerialized, myPrivateKeySerialized, encryptedCEK) {
   const kek = await deriveKek(theirPublicKeySerialized, myPrivateKeySerialized)
-  const serializedKey = await decryptContentAsync(kek, encryptedKey)
+  const serializedKey = await decryptContentAsync(kek, encryptedCEK)
   const encryptionKey = await deserializeAESKeyAsync(serializedKey)
   return encryptionKey
 }
 
 /**
  * Decrypt content previously encrypted with AES and serialized to string
- * @param {AES CryptoKey} encryptionKey 
+ * @param {AES CryptoKey used to encrypt content} contentEncryptionKey 
  * @param {content previously encrypted with AES and serialized to string} serializedContent 
  * @returns Clear content as string
  */
-async function decryptContentAsync(encryptionKey, serializedContent) {
+async function decryptContentAsync(contentEncryptionKey, serializedContent) {
   const splat = serializedContent.split(",")
   const encryptedContent = splat[0]
   const encodedIv = splat[1]
   const iv = new Uint8Array(encodedIv.split("|"))
   const encryptedBuffer = new Uint8Array(encryptedContent.split("|").map(e => Number.parseInt(e)))
-  const decrypted = await subtle.decrypt({ name: "AES-GCM", tagLength: AES_TAG_LENGTH, iv }, encryptionKey, encryptedBuffer)
+  const decrypted = await subtle.decrypt({ name: "AES-GCM", tagLength: AES_TAG_LENGTH, iv }, contentEncryptionKey, encryptedBuffer)
   const decryptedContent = decoder.decode(decrypted)
   return decryptedContent
 }

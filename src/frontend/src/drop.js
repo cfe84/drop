@@ -30,7 +30,7 @@ export async function sendEncryptedDropAsync(client, toAlias, message) {
   if (!key) {
     return
   }
-  const cryptogram = await encryptAsync(key.public_certificate, client.privateKey, message)
+  const cryptogram = await encryptAsync(key.public_certificate, client.privateCertificate, message)
   const drop = await createDropAsync({
     fromAlias: client.alias,
     toAlias,

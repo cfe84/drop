@@ -1,3 +1,3 @@
 DROP TABLE clients;
 DROP TABLE drops;
-DROP TABLE cryptograms;
+DROP TABLE cryptograms

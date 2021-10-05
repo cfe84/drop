@@ -1,44 +1,44 @@
 import { createClientAsync } from "./apiConnector.js";
 import { createKeyPairAsync, createPass } from "./encryption.js";
 
-const PRIVATE_CERTIFICATE_KEY = "drop.privateCertificate"
-const PUBLIC_CERTIFICATE_KEY = "drop.publicCertificate"
+const PRIVATE_KEY_KEY = "drop.privateKey"
+const PUBLIC_KEY_KEY = "drop.publicKey"
 const ALIAS_KEY = "drop.alias"
 const PASS_KEY = "drop.pass"
 
 export function loadLocalClient() {
-  const privateCertificate = localStorage.getItem(PRIVATE_CERTIFICATE_KEY)
-  const publicCertificate = localStorage.getItem(PUBLIC_CERTIFICATE_KEY)
+  const privateKey = localStorage.getItem(PRIVATE_KEY_KEY)
+  const publicKey = localStorage.getItem(PUBLIC_KEY_KEY)
   const alias = localStorage.getItem(ALIAS_KEY)
   const pass = localStorage.getItem(PASS_KEY)
-  if (!privateCertificate || !publicCertificate || !alias || !pass) {
+  if (!privateKey || !publicKey || !alias || !pass) {
     return null
   }
-  return getClientObject(privateCertificate, publicCertificate, pass, alias)
+  return getClientObject(privateKey, publicKey, pass, alias)
 }
 
 export async function registerAsClientAsync() {
   const keyPair = await createKeyPairAsync()
   const pass = createPass()
-  const publicCertificate = keyPair.publicKey
-  const privateCertificate = keyPair.privateKey
-  const alias = await createClientAsync(pass, publicCertificate)
-  const client = getClientObject(privateCertificate, publicCertificate, pass, alias)
+  const publicKey = keyPair.publicKey
+  const privateKey = keyPair.privateKey
+  const alias = await createClientAsync(pass, publicKey)
+  const client = getClientObject(privateKey, publicKey, pass, alias)
   client.save()
   return client
 }
 
-function getClientObject(privateCertificate, publicCertificate, pass, alias) {
+function getClientObject(privateKey, publicKey, pass, alias) {
   function save() {
-    localStorage.setItem(PRIVATE_CERTIFICATE_KEY, privateCertificate)
-    localStorage.setItem(PUBLIC_CERTIFICATE_KEY, publicCertificate)
+    localStorage.setItem(PRIVATE_KEY_KEY, privateKey)
+    localStorage.setItem(PUBLIC_KEY_KEY, publicKey)
     localStorage.setItem(ALIAS_KEY, alias)
     localStorage.setItem(PASS_KEY, pass)
   }
   return {
     alias,
-    publicCertificate,
-    privateCertificate,
+    publicKey,
+    privateKey,
     pass,
     save
   }

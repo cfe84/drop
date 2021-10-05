@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: {{ .Values.ns }}
+  name: {{ .Values.name }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.name }}
+    spec:
+      containers:
+      - name: {{ .Values.name }}-container
+        image: "jellyfin/jellyfin"
+        env:
+        - name: PORT
+          value: "8096"
+        ports:
+          - containerPort: 8096
+        volumeMounts:
+        - name: data
+          mountPath: /media
+        - name: config
+          mountPath: /config
+        - name: cache
+          mountPath: /cache
+      volumes:
+        - name: data
+          flexVolume:
+            driver: "azure/blobfuse"
+            readOnly: true
+            secretRef:
+              name: blobfusecreds
+            options:
+              container: archive
+              tmppath: /tmp/blobfuse-archive
+              mountoptions: "--file-cache-timeout-in-seconds=120"
+        - name: config
+          flexVolume:
+            driver: "azure/blobfuse"
+            readOnly: false
+            secretRef:
+              name: blobfusecreds
+            options:
+              container: cfg
+              tmppath: /tmp/blobfuse-config
+              mountoptions: "--file-cache-timeout-in-seconds=120"
+        - name: cache
+          flexVolume:
+            driver: "azure/blobfuse"
+            readOnly: false
+            secretRef:
+              name: blobfusecreds
+            options:
+              container: cache
+              tmppath: /tmp/blobfuse-cache
+              mountoptions: "--file-cache-timeout-in-seconds=120"

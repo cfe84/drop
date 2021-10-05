@@ -6,10 +6,10 @@ export async function getDecryptedDropsAsync(client) {
   const drops = await getDropsAsync({ alias: client.alias, pass: client.pass })
   let res = []
   for (let drop of drops) {
-    const sender = await getClientAsync(drop.from_alias)
-    const decryptedContent = await decryptAsync(client.privateCertificate, sender.public_certificate, drop.encrypted_key, drop.encrypted_text)
+    const sender = await getClientAsync(drop.fromAlias)
+    const decryptedContent = await decryptAsync(client.privateKey, sender.publicKey, drop.encryptedKey, drop.encryptedText)
     res.push({
-      fromAlias: drop.from_alias,
+      fromAlias: drop.fromAlias,
       decryptedContent
     })
   }
@@ -36,7 +36,7 @@ export async function sendEncryptedDropAsync(client, toAlias, message, onStateCh
     }
   }
   onStateChanged("Encrypting text")
-  const cryptogram = await encryptAsync(key.public_certificate, client.privateCertificate, message)
+  const cryptogram = await encryptAsync(key.publicKey, client.privateKey, message)
   onStateChanged("Uploading drop")
   const drop = await createDropAsync({
     fromAlias: client.alias,

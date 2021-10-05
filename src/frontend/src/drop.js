@@ -21,21 +21,31 @@ async function getClientKeyAsync(alias) {
     const key = await getClientAsync(alias)
     return key
   } catch (err) {
-    alert(err.message)
+
   }
 }
 
-export async function sendEncryptedDropAsync(client, toAlias, message) {
+export async function sendEncryptedDropAsync(client, toAlias, message, onStateChanged = (state) => { }) {
+  onStateChanged("Getting public key")
   const key = await getClientKeyAsync(toAlias)
   if (!key) {
-    return
+    onStateChanged("Key doesn't exist")
+    return {
+      result: "failure",
+      error: "Key doesn't exist"
+    }
   }
+  onStateChanged("Encrypting text")
   const cryptogram = await encryptAsync(key.public_certificate, client.privateCertificate, message)
+  onStateChanged("Uploading drop")
   const drop = await createDropAsync({
     fromAlias: client.alias,
     toAlias,
     encryptedKey: cryptogram.encryptedKey,
     encryptedContent: cryptogram.encryptedContent
   })
-  return drop
+  return {
+    result: "success",
+    drop
+  }
 }

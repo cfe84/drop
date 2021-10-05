@@ -8,12 +8,30 @@ export function sendMessagePageComponent({ client, onBack }) {
 
   const aliasInput = html`<input type="text" class="form-control" placeholder="Alias" aria-label="Alias" aria-describedby="basic-addon1" />`
   const messageInput = html`<textarea class="form-control" rows="5" aria-label="With textarea"></textarea>`
+  const statusSpan = html`<div></div>`
+
+  const setState = (enabled) => {
+    btnCancel.disabled = !enabled
+    btnSend.disabled = !enabled
+    aliasInput.disabled = !enabled
+    messageInput.disabled = !enabled
+  }
 
   const sendMessage = () => {
+    setState(false)
     const toAlias = aliasInput.value
     const message = messageInput.value
-    sendEncryptedDropAsync(client, toAlias, message).then(() => { onBack() })
+    sendEncryptedDropAsync(client, toAlias, message, (status) => statusSpan.innerHTML = status).then((res) => {
+      setState(true)
+      if (res.result === "success") {
+        aliasInput.value = ""
+        messageInput.value = ""
+        onBack()
+      }
+    })
   }
+  const btnSend = html`<button type="button" onclick=${sendMessage} class="btn btn-primary mb-3">Send</button>`
+  const btnCancel = html`<button type="button" onclick=${onBack} class="btn btn-outline-secondary mb-3">Cancel</button>`
 
   return html`
   <div class="px-4 py-5 my-5 text-center container">
@@ -28,9 +46,9 @@ export function sendMessagePageComponent({ client, onBack }) {
         ${messageInput}
       </div>
       <br/>
-      <button type="button" onclick=${sendMessage} class="btn btn-primary mb-3">Send</button>
-      <span>  </span>
-      <button type="button" onclick=${onBack} class="btn btn-outline-secondary mb-3">Cancel</button>
+      ${statusSpan}
+      ${btnSend}
+      ${btnCancel}
     </div>
   </div>`
 }

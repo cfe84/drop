@@ -23,7 +23,7 @@ spec:
           service:
             name: {{ .Values.name }}-service
             port:
-              number: 8082
+              number: 8080
         path: /
         pathType: Prefix
   tls:

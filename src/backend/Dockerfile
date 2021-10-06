@@ -15,4 +15,4 @@ RUN npm install --only=prod
 EXPOSE 8080
 ENV port=8080
 ENV PORT=8080
-ENTRYPOINT node 
+ENTRYPOINT node index.js

@@ -14,47 +14,24 @@ spec:
     spec:
       containers:
       - name: {{ .Values.name }}-container
-        image: "jellyfin/jellyfin"
+        image: "cfe84/drop:{{ .Values.imageVersion }}"
         env:
         - name: PORT
-          value: "8096"
+          value: "8080"
         ports:
-          - containerPort: 8096
+          - containerPort: 8080
         volumeMounts:
         - name: data
-          mountPath: /media
-        - name: config
-          mountPath: /config
-        - name: cache
-          mountPath: /cache
+          mountPath: /data
       volumes:
-        - name: data
-          flexVolume:
-            driver: "azure/blobfuse"
-            readOnly: true
-            secretRef:
-              name: blobfusecreds
-            options:
-              container: archive
-              tmppath: /tmp/blobfuse-archive
-              mountoptions: "--file-cache-timeout-in-seconds=120"
-        - name: config
-          flexVolume:
-            driver: "azure/blobfuse"
-            readOnly: false
-            secretRef:
-              name: blobfusecreds
-            options:
-              container: cfg
-              tmppath: /tmp/blobfuse-config
-              mountoptions: "--file-cache-timeout-in-seconds=120"
-        - name: cache
-          flexVolume:
-            driver: "azure/blobfuse"
-            readOnly: false
-            secretRef:
-              name: blobfusecreds
-            options:
-              container: cache
-              tmppath: /tmp/blobfuse-cache
-              mountoptions: "--file-cache-timeout-in-seconds=120"
+      - name: data
+        azureFile:
+# read -p "Storage account name > " STORAGE_ACCOUNT_NAME && \
+# read -p " Storage account key > " STORAGE_ACCOUNT_KEY && \
+# APP_NAMESPACE=drop && \
+# kubectl -n $APP_NAMESPACE create secret generic azure-sec \
+#   --from-literal=azurestorageaccountname=$STORAGE_ACCOUNT_NAME \
+#   --from-literal=azurestorageaccountkey=$STORAGE_ACCOUNT_KEY
+          secretName: azure-sec
+          shareName: drop
+          readOnly: false

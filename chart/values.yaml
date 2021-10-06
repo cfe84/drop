@@ -1,3 +1,4 @@
-hostname: jellyfin.fev.al
-ns: jellyfin
-name: jellyfin
+hostname: 
+ns: drop
+name: drop
+imageVersion: latest

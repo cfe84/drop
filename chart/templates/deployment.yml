@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: {{ .Values.name }}-container
-        image: "cfe84/drop:{{ .Values.imageVersion }}"
+        image: "charles.azurecr.io/drop:{{ .Values.imageVersion }}"
         env:
         - name: PORT
           value: "8080"

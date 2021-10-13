@@ -35,4 +35,4 @@ jobs:
           tags: charles.azurecr.io/${{ secrets.DOCKER_IMAGE_NAME}}:${{ github.sha }}
       - name: Deploy to kubernetes
         run: |
-          helm template ./chart --set hostname=${{ secrets.HOSTNAME }} | kubectl apply -f -
+          helm template ./chart --set hostname=${{ secrets.HOSTNAME }} --set imageVersion=${{ github.sha }} | kubectl apply -f -

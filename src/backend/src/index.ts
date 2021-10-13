@@ -1,9 +1,10 @@
 import { DropDb } from "./DropDb";
 import { v4 as uuid } from "uuid";
 import { DropServer } from "./DropServer";
+import * as path from "path";
 
 const dbFile = "testdb.sqlite3"
-const staticFolder = process.env.STATIC_CONTENT || "..\\frontend"
+const staticFolder = process.env.STATIC_CONTENT || path.join("..", frontend")
 const port = Number.parseInt(process.env.PORT || "8080")
 
 const db = new DropDb(dbFile)

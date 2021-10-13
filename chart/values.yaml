@@ -2,3 +2,4 @@ hostname:
 ns: drop
 name: drop
 imageVersion: latest
+dbFilePath: /data/db.sqlite3

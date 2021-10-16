@@ -5,6 +5,7 @@ import { CompositeDrop } from "./CompositeDrop";
 import { Drop } from "./Drop";
 import { Cypher } from "./Cypher";
 import { v4 as uuid } from "uuid"
+import { IDropStorage } from "./IDropStorage";
 
 export interface DropServerConfig {
   staticFolder: string,
@@ -19,7 +20,7 @@ interface QueryResult<T> {
 
 export class DropServer {
   private app: Express.Application;
-  constructor(private db: DropDb, private config: DropServerConfig) {
+  constructor(private db: IDropStorage, private config: DropServerConfig) {
     const app = Express()
     app.use(Express.static(config.staticFolder))
     app.use(Express.json())
@@ -40,7 +41,7 @@ export class DropServer {
   }
 
   private handleDbError(err: Error, res: Express.Response): QueryResult<any> {
-    if (err.message.indexOf("UNIQUE constraint failed") >= 0) {
+    if (err.message.indexOf("UNIQUE") >= 0) {
       res.statusCode = 409
       return {
         result: "error",

@@ -1,6 +1,7 @@
 import { html } from "./html.js"
 import { header } from "./header.js"
 import { sendEncryptedDropAsync } from "./drop.js"
+import { cleanClient } from "./client.js"
 
 
 
@@ -17,6 +18,12 @@ export function sendMessagePageComponent({ client, onBack }) {
     messageInput.disabled = !enabled
   }
 
+  const clean = () => {
+    aliasInput.value = ""
+    messageInput.value = ""
+    statusSpan.innerHTML = ""
+  }
+
   const sendMessage = () => {
     setState(false)
     const toAlias = aliasInput.value
@@ -24,14 +31,19 @@ export function sendMessagePageComponent({ client, onBack }) {
     sendEncryptedDropAsync(client, toAlias, message, (status) => statusSpan.innerHTML = status).then((res) => {
       setState(true)
       if (res.result === "success") {
-        aliasInput.value = ""
-        messageInput.value = ""
+        clean()
         onBack()
       }
     })
   }
+
+  const cancel = () => {
+    clean()
+    onBack()
+  }
+
   const btnSend = html`<button type="button" onclick=${sendMessage} class="btn btn-primary mb-3">Send</button>`
-  const btnCancel = html`<button type="button" onclick=${onBack} class="btn btn-outline-secondary mb-3">Cancel</button>`
+  const btnCancel = html`<button type="button" onclick=${cancel} class="btn btn-outline-secondary mb-3">Cancel</button>`
 
   return html`
   <div class="px-4 py-5 my-5 text-center container">

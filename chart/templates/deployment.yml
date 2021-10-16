@@ -20,6 +20,8 @@ spec:
           value: "8080"
         - name: DB_FILE
           value: "{{ .Values.dbFilePath }}"
+        - name: STORE_FOLDER
+          value: "{{ .Values.storeFolder }}"
         ports:
           - containerPort: 8080
         volumeMounts:

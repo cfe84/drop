@@ -14,15 +14,15 @@ function app() {
     document.body.appendChild(main)
   }
 
-  function loader(component) {
-    return () => load(component)
-  }
-
   function run() {
     const client = loadLocalClient()
     if (client) {
-      const sendMessagePage = sendMessagePageComponent({ client, onBack: run })
-      const homePage = homePageComponent({ client, onSendMessage: loader(sendMessagePage), onDeregistered: run })
+      const homePage = homePageComponent({
+        client, onSendMessage: () => {
+          const sendMessagePage = sendMessagePageComponent({ client, onBack: run })
+          load(sendMessagePage)
+        }, onDeregistered: run
+      })
       load(homePage)
     } else {
       const welcomePage = welcomePageComponent({ onRegistered: run })

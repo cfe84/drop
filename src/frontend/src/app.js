@@ -1,17 +1,18 @@
 import { loadLocalClient } from './client.js';
-import { welcomePageComponent } from './welcomePageComponent.js';
-import { homePageComponent } from './homePageComponent.js';
-import { sendMessagePageComponent } from './sendMessagePageComponent.js';
+import { welcomePageComponent } from './views/welcomePageComponent.js';
+import { homePageComponent } from './views/homePageComponent.js';
+import { sendMessagePageComponent } from './views/sendMessagePageComponent.js';
 
 function app() {
+  const container = document.getElementById("container")
   let main = null
 
   function load(component) {
     if (main) {
-      document.body.removeChild(main)
+      container.removeChild(main)
     }
     main = component
-    document.body.appendChild(main)
+    container.appendChild(main)
   }
 
   function run() {

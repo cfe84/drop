@@ -1,5 +1,5 @@
-import { html } from "./html.js"
-import { registerAsClientAsync } from "./client.js"
+import { html } from "../html.js"
+import { registerAsClientAsync } from "../client.js"
 
 export function welcomePageComponent({ onRegistered, onSendMessage }) {
 

@@ -61,3 +61,9 @@ export async function getDropsAsync({ alias, pass }) {
   })
   return drops
 }
+
+export async function deleteDropAsync({ alias, pass, dropId }) {
+  await sendQueryAsync(`clients/${alias}/drops/${dropId}`, "DELETE", undefined, {
+    authorization: `Password ${pass}`
+  })
+}

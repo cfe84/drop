@@ -9,4 +9,5 @@ export interface IDropStorage {
   createCypherAsync(cypher: Cypher): Promise<void>
   getClientPublicKeyAsync(alias: string): Promise<string>
   getDropsAndCyphersAsync(alias: string, pass: string): Promise<CompositeDrop[]>
+  deleteDropAsync(dropId: string, alias: string, pass: string): Promise<void>
 }

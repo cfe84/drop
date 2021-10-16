@@ -9,6 +9,7 @@ export async function getDecryptedDropsAsync(client) {
     const sender = await getClientAsync(drop.fromAlias)
     const decryptedContent = await decryptAsync(client.privateKey, sender.publicKey, drop.encryptedKey, drop.encryptedText)
     res.push({
+      dropId: drop.dropId,
       fromAlias: drop.fromAlias,
       decryptedContent
     })

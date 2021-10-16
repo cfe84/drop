@@ -1,13 +1,12 @@
-import { html } from "./html.js"
+import { html } from "../html.js"
 import { header } from "./header.js"
-import { sendEncryptedDropAsync } from "./drop.js"
-import { cleanClient } from "./client.js"
+import { sendEncryptedDropAsync } from "../drop.js"
 
 
 
 export function sendMessagePageComponent({ client, onBack }) {
 
-  const aliasInput = html`<input type="text" class="form-control" placeholder="Alias" aria-label="Alias" aria-describedby="basic-addon1" />`
+  const aliasInput = html`<input type="text" class="form-control" placeholder="Alias" aria-label="Alias" />`
   const messageInput = html`<textarea class="form-control" rows="5" aria-label="With textarea"></textarea>`
   const statusSpan = html`<div></div>`
 
@@ -49,12 +48,12 @@ export function sendMessagePageComponent({ client, onBack }) {
   <div class="px-4 py-5 my-5 text-center container">
     ${header("Send message")}
     <div class="col-md-7 mx-auto ">
-      <div class="input-group mb-3">
-        <span class="input-group-text" id="basic-addon1">Alias</span>
+        <p class="lead mb-4 pt-4">Recipient's alias:</p>
+        <div class="input-group mb-3">
         ${aliasInput}
       </div>
-      <div class="input-group">
-        <span class="input-group-text">Message</span>
+        <p class="lead mb-4 pt-4">Your message:</p>
+        <div class="input-group">
         ${messageInput}
       </div>
       <br/>

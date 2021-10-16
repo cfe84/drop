@@ -1,4 +1,4 @@
-import { html } from "./html.js"
+import { html } from "../html.js"
 export function header(name) {
   return html`
 <div class="py-4 d-flex flex-wrap justify-content-center mx-auto">

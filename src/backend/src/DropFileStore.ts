@@ -8,12 +8,19 @@ import { IDropStorage } from "./IDropStorage";
 
 interface ClientFileContent {
   client: Client,
-  dropIds: string[]
+  dropIds: string[],
+  path: string
 }
 
 interface CypherFileContent {
   cypher: Cypher,
-  dropIds: string[]
+  dropIds: string[],
+  path: string
+}
+
+interface DropFileContent {
+  drop: Drop,
+  path: string
 }
 
 export class DropFileStore implements IDropStorage {
@@ -40,7 +47,14 @@ export class DropFileStore implements IDropStorage {
       throw Error("Client not found")
     }
     const clientFile = JSON.parse(fs.readFileSync(clientFilePath).toString()) as ClientFileContent
+    clientFile.path = clientFilePath
     return clientFile
+  }
+
+  private saveClientFile(clientFile: ClientFileContent) {
+    const filePath = this.getClientFileName(clientFile.client.alias)
+    clientFile.path = filePath
+    fs.writeFileSync(filePath, JSON.stringify(clientFile))
   }
 
   async createClientAsync(client: Client): Promise<void> {
@@ -50,9 +64,10 @@ export class DropFileStore implements IDropStorage {
     }
     const clientFile: ClientFileContent = {
       client,
-      dropIds: []
+      dropIds: [],
+      path: clientFilePath
     }
-    fs.writeFileSync(clientFilePath, JSON.stringify(clientFile))
+    this.saveClientFile(clientFile)
   }
 
   private getCypherFileName(cypherId: string): string {
@@ -65,36 +80,52 @@ export class DropFileStore implements IDropStorage {
       throw Error("Cypher not found")
     }
     const cypherFile = JSON.parse(fs.readFileSync(cypherFilePath).toString()) as CypherFileContent
+    cypherFile.path = cypherFilePath
     return cypherFile
+  }
+
+  private saveCypherFile(cypherFile: CypherFileContent) {
+    const cypherFilePath = this.getCypherFileName(cypherFile.cypher.id)
+    cypherFile.path = cypherFilePath
+    fs.writeFileSync(cypherFilePath, JSON.stringify(cypherFile))
   }
 
   private getDropFileName(dropId: string): string {
     return path.join(this.dropsFolder, dropId + ".json")
   }
 
-  private getDropFile(dropId: string): Drop {
+  private getDropFile(dropId: string): DropFileContent {
     const dropFilePath = this.getDropFileName(dropId)
     if (!fs.existsSync(dropFilePath)) {
       throw Error("Drop not found")
     }
-    const dropFile = JSON.parse(fs.readFileSync(dropFilePath).toString()) as Drop
+    const dropFile = JSON.parse(fs.readFileSync(dropFilePath).toString()) as DropFileContent
+    dropFile.path = dropFilePath
     return dropFile
+  }
+
+  private saveDropFile(dropFile: DropFileContent) {
+    const dropFilePath = this.getDropFileName(dropFile.drop.id)
+    dropFile.path = dropFilePath
+    fs.writeFileSync(dropFilePath, JSON.stringify(dropFile))
   }
 
   async createDropAsync(drop: Drop): Promise<void> {
     const dropFilePath = this.getDropFileName(drop.id)
-    const clientFilePath = this.getClientFileName(drop.toAlias)
     const clientFile = this.getClientFile(drop.toAlias)
     if (fs.existsSync(dropFilePath)) {
       throw Error("UNIQUE")
     }
-    const cypherFilePath = this.getCypherFileName(drop.cypherId)
     const cypherFile = this.getCypherFile(drop.cypherId)
-    fs.writeFileSync(dropFilePath, JSON.stringify(drop))
+    const dropFile = {
+      drop,
+      path: dropFilePath
+    } as DropFileContent
+    this.saveDropFile(dropFile)
     clientFile.dropIds.push(drop.id)
-    fs.writeFileSync(clientFilePath, JSON.stringify(clientFile))
+    this.saveClientFile(clientFile)
     cypherFile.dropIds.push(drop.id)
-    fs.writeFileSync(cypherFilePath, JSON.stringify(cypherFile))
+    this.saveCypherFile(cypherFile)
   }
 
   async createCypherAsync(cypher: Cypher): Promise<void> {
@@ -104,9 +135,10 @@ export class DropFileStore implements IDropStorage {
     }
     const cypherFile: CypherFileContent = {
       cypher,
-      dropIds: []
+      dropIds: [],
+      path: cypherFilePath
     }
-    fs.writeFileSync(cypherFilePath, JSON.stringify(cypherFile))
+    this.saveCypherFile(cypherFile)
   }
 
   async getClientPublicKeyAsync(alias: string): Promise<string> {
@@ -114,23 +146,52 @@ export class DropFileStore implements IDropStorage {
     return clientFile.client.publicKey
   }
 
-  async getDropsAndCyphersAsync(alias: string, pass: string): Promise<CompositeDrop[]> {
-    const clientFile = this.getClientFile(alias)
-    if (clientFile.client.pass !== pass) {
+  private validatePassword(client: Client, pass: string) {
+    if (client.pass !== pass) {
       throw Error("Alias or password incorrect")
     }
+  }
+
+  async getDropsAndCyphersAsync(alias: string, pass: string): Promise<CompositeDrop[]> {
+    const clientFile = this.getClientFile(alias)
+    this.validatePassword(clientFile.client, pass)
     const drops = clientFile.dropIds.map(dropId => {
-      const drop = this.getDropFile(dropId)
-      const cypher = this.getCypherFile(drop.cypherId).cypher
+      const dropFile = this.getDropFile(dropId)
+      const cypher = this.getCypherFile(dropFile.drop.cypherId).cypher
       return {
         createdDate: cypher.createdDate,
         dropId,
-        encryptedKey: drop.encryptedKey,
+        encryptedKey: dropFile.drop.encryptedKey,
         encryptedText: cypher.encryptedText,
-        fromAlias: drop.fromAlias
+        fromAlias: dropFile.drop.fromAlias
       } as CompositeDrop
     })
     return drops
   }
 
+  async deleteDropAsync(dropId: string, alias: string, pass: string): Promise<void> {
+    const clientFile = this.getClientFile(alias)
+    this.validatePassword(clientFile.client, pass)
+    const dropFile = this.getDropFile(dropId)
+    const cypherFile = this.getCypherFile(dropFile.drop.cypherId)
+    const indexOfDropInClient = clientFile.dropIds.indexOf(dropId)
+    if (indexOfDropInClient < 0 || dropFile.drop.toAlias !== alias) {
+      throw Error(`FORBIDDEN`)
+    }
+    fs.unlinkSync(dropFile.path)
+    clientFile.dropIds.splice(indexOfDropInClient, 1)
+    this.saveClientFile(clientFile)
+    const indexOfDropInCypher = cypherFile.dropIds.indexOf(dropId)
+    if (indexOfDropInCypher < 0) {
+      console.warn(`Drop not found in cypher`)
+      return
+    }
+    // If this is the last drop of the cypher we delete it.
+    cypherFile.dropIds.splice(indexOfDropInCypher, 1)
+    if (cypherFile.dropIds.length === 0) {
+      fs.unlinkSync(cypherFile.path)
+    } else {
+      this.saveCypherFile(cypherFile)
+    }
+  }
 }

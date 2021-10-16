@@ -22,12 +22,15 @@ export class DropServer {
   private app: Express.Application;
   constructor(private db: IDropStorage, private config: DropServerConfig) {
     const app = Express()
+
     app.use(Express.static(config.staticFolder))
     app.use(Express.json())
     app.post("/api/clients", this.createClient.bind(this))
     app.get("/api/clients/:alias", this.getClient.bind(this))
     app.post("/api/clients/:alias/drops", this.createDrop.bind(this))
     app.get("/api/clients/:alias/drops", this.getCompositeDrops.bind(this))
+    app.delete("/api/clients/:alias/drops/:dropId", this.deleteDrop.bind(this))
+
     this.app = app
   }
 
@@ -138,6 +141,25 @@ export class DropServer {
     let response: QueryResult<CompositeDrop[]>
     try {
       const res = await this.db.getDropsAndCyphersAsync(forAlias, pass)
+      response = {
+        result: "success",
+        data: res
+      }
+    } catch (err: any) {
+      response = this.handleDbError(err, res)
+    }
+    res.send(response)
+  }
+
+  async deleteDrop(req: Express.Request, res: Express.Response) {
+    const alias = req.params["alias"]
+    const dropId = req.params["dropId"]
+    const passHeader = req.headers.authorization
+    const PASSWORD_TYPE = "Password "
+    const pass = (passHeader && passHeader.startsWith(PASSWORD_TYPE)) ? passHeader.substr(PASSWORD_TYPE.length) : ""
+    let response: QueryResult<void>
+    try {
+      const res = await this.db.deleteDropAsync(dropId, alias, pass)
       response = {
         result: "success",
         data: res

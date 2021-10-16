@@ -3,15 +3,16 @@ import { Client } from "./Client"
 import { CompositeDrop } from "./CompositeDrop"
 import { Cypher } from "./Cypher"
 import { Drop } from "./Drop"
+import { IDropStorage } from "./IDropStorage"
 
-export class DropDb {
+export class DropDb implements IDropStorage {
   private db: Database
 
   constructor(dbFile: string) {
     this.db = new Database(dbFile)
   }
 
-  private insertQuery(query: string, ...params: any[]): Promise<void> {
+  private alterQuery(query: string, ...params: any[]): Promise<void> {
     return new Promise((resolve, reject) => {
       const statement = this.db.prepare(query, ...params)
       statement.run((err) => {
@@ -37,21 +38,21 @@ export class DropDb {
   }
 
   public async createClientAsync(client: Client): Promise<void> {
-    await this.insertQuery(`INSERT INTO clients
+    await this.alterQuery(`INSERT INTO clients
       (alias, pass, public_key)
       VALUES(?, ?, ?)`,
       client.alias, client.pass, client.publicKey)
   }
 
   public async createDropAsync(drop: Drop): Promise<void> {
-    await this.insertQuery(`INSERT INTO drops
+    await this.alterQuery(`INSERT INTO drops
       (drop_id, from_alias, to_alias, encrypted_key, cypher_id)
       VALUES(?, ?, ?, ?, ?)`,
       drop.id, drop.fromAlias, drop.toAlias, drop.encryptedKey, drop.cypherId)
   }
 
   public async createCypherAsync(cypher: Cypher): Promise<void> {
-    await this.insertQuery(`INSERT INTO cyphers
+    await this.alterQuery(`INSERT INTO cyphers
       (cypher_id, encrypted_text, content_type, created_date)
       VALUES(?, ?, ?, ?)`,
       cypher.id, cypher.encryptedText, cypher.contentType, cypher.createdDate)
@@ -85,5 +86,25 @@ export class DropDb {
       encryptedText: row["encrypted_text"],
       createdDate: row["created_date"],
     }))
+  }
+
+  public async deleteDropAsync(dropId: string, alias: string, pass: string): Promise<void> {
+    const drop = await this.select(`SELECT drops.id as id, cypher_id
+      FROM clients
+      INNER JOIN drops ON clients.alias == drops.alias
+      WHERE alias = ? AND pass = ? AND drops.id = ?`, alias, pass, dropId)
+    if (drop.length !== 1) {
+      throw Error(`Alias or password incorrect`)
+    }
+    const cypherId = drop[0]["cypher_id"]
+    await this.alterQuery(`DELETE FROM drops
+      WHERE id = ?`, dropId)
+    const cypherDropCount = await this.select(`SELECT count(*) as cnt
+      FROM drops
+      WHERE cypher_id = ?`, cypherId)
+    if (cypherDropCount[0]["cnt"] === 0) {
+      await this.alterQuery(`DELETE FROM cyphers
+      WHERE id = ?`, cypherId)
+    }
   }
 }

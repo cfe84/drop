@@ -1,9 +1,10 @@
 import { DropDb } from "./DropDb";
-import { v4 as uuid } from "uuid";
 import { DropServer } from "./DropServer";
 import * as path from "path";
 import { DropFileStore } from "./DropFileStore";
 import { IDropStorage } from "./IDropStorage";
+import * as dotenv from "dotenv"
+dotenv.config()
 
 const dbFile = process.env.DB_FILE
 const storeFolder = process.env.STORE_FOLDER

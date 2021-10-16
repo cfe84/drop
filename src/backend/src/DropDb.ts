@@ -1,4 +1,3 @@
-import { resolve } from "path/posix"
 import { Database, Statement } from "sqlite3"
 import { Client } from "./Client"
 import { CompositeDrop } from "./CompositeDrop"

@@ -1,4 +1,3 @@
-import { DropDb } from "./DropDb";
 import * as Express from "express"
 import { Client } from "./Client";
 import { CompositeDrop } from "./CompositeDrop";
@@ -6,6 +5,7 @@ import { Drop } from "./Drop";
 import { Cypher } from "./Cypher";
 import { v4 as uuid } from "uuid"
 import { IDropStorage } from "./IDropStorage";
+import { Alias } from "./Alias";
 
 export interface DropServerConfig {
   staticFolder: string,
@@ -68,7 +68,7 @@ export class DropServer {
     let response: QueryResult<Client>
     // Todo: validate payload
     try {
-      const alias = uuid()
+      const alias = Alias.getAlias()
       client.alias = alias
       await this.db.createClientAsync(client)
       response = {

@@ -35,6 +35,11 @@ export async function createClientAsync(pass, publicKey) {
   return alias
 }
 
+export async function getAliasAsync(alias) {
+  const client = await sendQueryAsync(`alias`, "GET")
+  return client
+}
+
 export async function getClientAsync(alias) {
   const client = await sendQueryAsync(`clients/${alias}`, "GET")
   return client

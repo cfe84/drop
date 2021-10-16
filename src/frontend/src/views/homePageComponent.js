@@ -24,7 +24,7 @@ export function homePageComponent({ client, onSendMessage, onDeregistered }) {
           <div>${content}</div>
         </div>
         <div class="col align-middle">
-          <button class="btn btn-outline-danger" onclick=${ondelete}>Delete</button>
+          <button class="btn btn-outline-danger" onclick=${ondelete}>❌</button>
         </div>
       </div>
   `
@@ -73,7 +73,7 @@ export function homePageComponent({ client, onSendMessage, onDeregistered }) {
     ${copyAliasBtn}
   </div>
   <div>
-    <p class="lead mb-4 pt-4">Your messages:</p>
+    <p class="lead mb-4 pt-4">Your messages: <button class="btn btn-outline-secondary" onclick=${refresh}>⭮</button></p>
     ${list}
     <div class="d-grid gap-2 py-4 d-sm-flex justify-content-sm-center">
       <button type="button" onclick=${onDeregisterConfirm} class="btn btn-outline-danger btn-lg px-4 gap-3">De-register</button>

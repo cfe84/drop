@@ -75,17 +75,20 @@ export class DropDb implements IDropStorage {
     if (client.length !== 1) {
       throw Error(`Alias or password incorrect`)
     }
-    const drops = await this.select(`SELECT drop_id, from_alias, encrypted_key, encrypted_text, created_date
+    const rows = await this.select(`SELECT drop_id, from_alias, encrypted_key, encrypted_text, created_date, delete_on_display
     FROM drops
     INNER JOIN cyphers ON drops.cypher_id = cyphers.cypher_id
     WHERE to_alias = ?`, alias)
-    return drops.map(row => ({
+    const drops = rows.map(row => ({
       dropId: row["drop_id"],
       fromAlias: row["from_alias"],
       encryptedKey: row["encrypted_key"],
       encryptedText: row["encrypted_text"],
       createdDate: row["created_date"],
+      deleteOnDisplay: row["delete_on_display"]
     }))
+    await Promise.all(drops.filter(drop => drop.deleteOnDisplay).map(drop => this.deleteDropAsync(drop.dropId, alias, pass)))
+    return drops
   }
 
   public async deleteDropAsync(dropId: string, alias: string, pass: string): Promise<void> {

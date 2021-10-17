@@ -3,5 +3,6 @@ export interface Drop {
   fromAlias: string,
   toAlias: string,
   encryptedKey: string,
-  cypherId: string
+  cypherId: string,
+  deleteOnDisplay: boolean,
 }

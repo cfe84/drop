@@ -118,6 +118,7 @@ export class DropServer {
         toAlias: toAlias,
         encryptedKey: compositeDrop.encryptedKey,
         fromAlias: compositeDrop.fromAlias,
+        deleteOnDisplay: compositeDrop.deleteOnDisplay,
         id: uuid()
       }
       await this.db.createCypherAsync(cypher)
@@ -141,6 +142,10 @@ export class DropServer {
     let response: QueryResult<CompositeDrop[]>
     try {
       const res = await this.db.getDropsAndCyphersAsync(forAlias, pass)
+      await Promise.all(res
+        .filter(drop => drop.deleteOnDisplay)
+        .map(drop => this.db.deleteDropAsync(drop.dropId, forAlias, pass))
+      )
       response = {
         result: "success",
         data: res

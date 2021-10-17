@@ -6,7 +6,7 @@ import { deleteDropAsync } from "../apiConnector.js"
 
 export function homePageComponent({ client, onSendMessage, onDeregistered }) {
 
-  function dropComponent({ dropId, fromAlias, decryptedContent }) {
+  function dropComponent({ dropId, deleteOnDisplay, fromAlias, decryptedContent }) {
     const ondelete = () => {
       deleteDropAsync({ alias: client.alias, pass: client.pass, dropId }).then(() => {
         refresh()
@@ -16,11 +16,14 @@ export function homePageComponent({ client, onSendMessage, onDeregistered }) {
     decryptedContent = decryptedContent.replace(/\n/, "<br/>")
     const content = createElement("small")
     content.innerHTML = decryptedContent
+    const displayOnceWarning = deleteOnDisplay
+      ? html`<span class="badge rounded-pill bg-danger">Displayed only once</span>`
+      : html`<span></span>`
 
     return html`
       <div class="text-start py-3 lh-tight row">
         <div class="col-10">
-          <div><strong class="mb-1">From ${fromAlias}</strong>:</div>
+          <div><strong class="mb-1">From ${fromAlias}</strong>: ${displayOnceWarning}</div>
           <div>${content}</div>
         </div>
         <div class="col align-middle">
@@ -43,11 +46,15 @@ export function homePageComponent({ client, onSendMessage, onDeregistered }) {
 
   let itemContainer = html`<div></div>`
   const list = html`<div class="container">${itemContainer}</div>`
+  let containsDisplayOnce = false
 
   function refresh() {
+    if (containsDisplayOnce && !confirm(`Some messages are displayed only once and will forever disappear. Are you sure?`)) {
+      return
+    }
     getDecryptedDropsAsync(client).then(drops => {
       const content = drops.map(drop => dropComponent(drop))
-
+      containsDisplayOnce = !!drops.find(drop => drop.deleteOnDisplay)
       const newContainer = createElement("div", { class: "list-group list-group-flush border-bottom scrollarea" }, ...content);
 
       list.removeChild(itemContainer)

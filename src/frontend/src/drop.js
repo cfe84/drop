@@ -1,15 +1,18 @@
 import { decryptAsync, encryptAsync } from "./encryption.js"
 import { createDropAsync, getDropsAsync } from "./apiConnector.js"
 import { getClientAsync } from "./apiConnector.js"
+import { saveSenderAlias } from "./cache.js"
 
 export async function getDecryptedDropsAsync(client) {
   const drops = await getDropsAsync({ alias: client.alias, pass: client.pass })
   let res = []
   for (let drop of drops) {
     const sender = await getClientAsync(drop.fromAlias)
+    saveSenderAlias(sender.alias)
     const decryptedContent = await decryptAsync(client.privateKey, sender.publicKey, drop.encryptedKey, drop.encryptedText)
     res.push({
       dropId: drop.dropId,
+      deleteOnDisplay: drop.deleteOnDisplay,
       fromAlias: drop.fromAlias,
       decryptedContent
     })
@@ -26,7 +29,7 @@ async function getClientKeyAsync(alias) {
   }
 }
 
-export async function sendEncryptedDropAsync(client, toAlias, message, onStateChanged = (state) => { }) {
+export async function sendEncryptedDropAsync(client, toAlias, message, deleteOnDisplay, onStateChanged = (state) => { }) {
   onStateChanged("Getting public key")
   const key = await getClientKeyAsync(toAlias)
   if (!key) {
@@ -43,7 +46,8 @@ export async function sendEncryptedDropAsync(client, toAlias, message, onStateCh
     fromAlias: client.alias,
     toAlias,
     encryptedKey: cryptogram.encryptedKey,
-    encryptedContent: cryptogram.encryptedContent
+    encryptedContent: cryptogram.encryptedContent,
+    deleteOnDisplay
   })
   return {
     result: "success",

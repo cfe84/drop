@@ -163,7 +163,8 @@ export class DropFileStore implements IDropStorage {
         dropId,
         encryptedKey: dropFile.drop.encryptedKey,
         encryptedText: cypher.encryptedText,
-        fromAlias: dropFile.drop.fromAlias
+        fromAlias: dropFile.drop.fromAlias,
+        deleteOnDisplay: dropFile.drop.deleteOnDisplay
       } as CompositeDrop
     })
     return drops

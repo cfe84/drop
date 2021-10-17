@@ -27,10 +27,10 @@ export function sendMessagePageComponent({ client, onBack }) {
 
   const sendMessage = () => {
     setState(false)
-    const toAlias = aliasInput.value
+    const toAliases = aliasInput.value.split(",").map(alias => alias.trim())
     const message = messageInput.value
     const deleteOnDisplay = deleteOnDisplayInput.checked
-    sendEncryptedDropAsync(client, toAlias, message, deleteOnDisplay, (status) => statusSpan.innerHTML = status).then((res) => {
+    sendEncryptedDropAsync(client, toAliases, message, deleteOnDisplay, (status) => statusSpan.innerHTML = status).then((res) => {
       setState(true)
       if (res.result === "success") {
         clean()
@@ -46,12 +46,11 @@ export function sendMessagePageComponent({ client, onBack }) {
 
   const sendersElements = getSendersAliases().map(alias => {
     const selectSender = () => {
-      // if (aliasInput.value.length > 0) {
-      //   aliasInput.value += ", "
-      // }
-      // aliasInput.value += alias
-      // senders.removeChild(elt)
-      aliasInput.value = alias
+      if (aliasInput.value.length > 0) {
+        aliasInput.value += ", "
+      }
+      aliasInput.value += alias
+      senders.removeChild(elt)
     }
     const elt = html`<button class="btn badge bg-secondary mx-1" onclick=${selectSender}>${alias}</button>`
     return elt

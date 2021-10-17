@@ -210,16 +210,22 @@ async function decryptContentAsync(contentEncryptionKey, serializedContent) {
  * 3) Derive an AES KEK (Key Encryption Key) using an ECDH key pair: your private key and their public key
  * 4) Encrypt the CEK using the KEK
  * 5) Returns both the encrypted content and the encrypted CEK which can safely be transmitted online.
- * @param {ECDH public key from remote party, serialized as b64-jwk} theirPublicKeySerialized 
+ * @param {ECDH public keys from remote party, serialized as b64-jwk, and as an array of {alias, key}} theirPublicKeysSerialized 
  * @param {Own ECDH private key, serialized as b64-jwk} myPrivateKeySerialized 
  * @param {String content to be encrypted} content 
  * @returns A pair containing the CEK encrypted with the KEK, and the Content encrypted with the CEK and serialized to string.
  */
-export async function encryptAsync(theirPublicKeySerialized, myPrivateKeySerialized, content) {
+export async function encryptAsync(theirPublicKeysSerialized, myPrivateKeySerialized, content) {
   const { serializedContent, encryptionKey } = await encryptContentAsync(content)
-  const encryptedKey = await encryptKeyAsync(theirPublicKeySerialized, myPrivateKeySerialized, encryptionKey)
+  const encryptedKeys = await Promise.all(theirPublicKeysSerialized.map(async (keyAndAlias) => {
+    const key = await encryptKeyAsync(keyAndAlias.key, myPrivateKeySerialized, encryptionKey)
+    return {
+      alias: keyAndAlias.alias,
+      encryptedKey: key
+    }
+  }))
   return {
-    encryptedKey,
+    encryptedKeys,
     encryptedContent: serializedContent
   }
 }

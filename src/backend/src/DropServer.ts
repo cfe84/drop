@@ -18,6 +18,18 @@ interface QueryResult<T> {
   error?: string
 }
 
+interface DropAlias {
+  alias: string,
+  encryptedKey: string,
+}
+
+interface DropCreationRequest {
+  toAliases: DropAlias[],
+  fromAlias: string,
+  encryptedText: string,
+  deleteOnDisplay: boolean
+}
+
 export class DropServer {
   private app: Express.Application;
   constructor(private db: IDropStorage, private config: DropServerConfig) {
@@ -28,6 +40,7 @@ export class DropServer {
     app.post("/api/clients", this.createClient.bind(this))
     app.get("/api/clients/:alias", this.getClient.bind(this))
     app.post("/api/clients/:alias/drops", this.createDrop.bind(this))
+    app.post("/api/drops/", this.createDrop.bind(this))
     app.get("/api/clients/:alias/drops", this.getCompositeDrops.bind(this))
     app.delete("/api/clients/:alias/drops/:dropId", this.deleteDrop.bind(this))
 
@@ -103,30 +116,29 @@ export class DropServer {
   }
 
   async createDrop(req: Express.Request, res: Express.Response) {
-    const compositeDrop = req.body as CompositeDrop
-    const toAlias = req.params["alias"]
+    const dropRequest = req.body as DropCreationRequest
     let response: QueryResult<Partial<CompositeDrop>>
     try {
       const cypher: Cypher = {
         contentType: "text/plain",
         createdDate: new Date(),
-        encryptedText: compositeDrop.encryptedText,
+        encryptedText: dropRequest.encryptedText,
         id: uuid()
       }
-      const drop: Drop = {
+      const drops: Drop[] = dropRequest.toAliases.map(alias => ({
         cypherId: cypher.id,
-        toAlias: toAlias,
-        encryptedKey: compositeDrop.encryptedKey,
-        fromAlias: compositeDrop.fromAlias,
-        deleteOnDisplay: compositeDrop.deleteOnDisplay,
+        toAlias: alias.alias,
+        encryptedKey: alias.encryptedKey,
+        fromAlias: dropRequest.fromAlias,
+        deleteOnDisplay: dropRequest.deleteOnDisplay,
         id: uuid()
-      }
+      }))
       await this.db.createCypherAsync(cypher)
-      await this.db.createDropAsync(drop)
+      await Promise.all(drops.map(drop => this.db.createDropAsync(drop)))
 
       response = {
         result: "success",
-        data: compositeDrop
+        data: dropRequest
       }
     } catch (err: any) {
       response = this.handleDbError(err, res)

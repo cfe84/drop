@@ -29,23 +29,31 @@ async function getClientKeyAsync(alias) {
   }
 }
 
-export async function sendEncryptedDropAsync(client, toAlias, message, deleteOnDisplay, onStateChanged = (state) => { }) {
-  onStateChanged("Getting public key")
-  const key = await getClientKeyAsync(toAlias)
-  if (!key) {
-    onStateChanged("Key doesn't exist")
+export async function sendEncryptedDropAsync(client, toAliases, message, deleteOnDisplay, onStateChanged = (state) => { }) {
+  onStateChanged("Getting public keys")
+  const keysAndAliases = await Promise.all(toAliases.map(async (alias) => {
+    const key = await getClientKeyAsync(alias)
+    if (!key) {
+      onStateChanged(`Key ${alias} doesn't exist`)
+      return null
+    }
+    return {
+      key: key.publicKey,
+      alias
+    }
+  }))
+  if (keysAndAliases.indexOf(null) >= 0) {
     return {
       result: "failure",
       error: "Key doesn't exist"
     }
   }
   onStateChanged("Encrypting text")
-  const cryptogram = await encryptAsync(key.publicKey, client.privateKey, message)
+  const cryptogram = await encryptAsync(keysAndAliases, client.privateKey, message)
   onStateChanged("Uploading drop")
   const drop = await createDropAsync({
     fromAlias: client.alias,
-    toAlias,
-    encryptedKey: cryptogram.encryptedKey,
+    toAliases: cryptogram.encryptedKeys,
     encryptedContent: cryptogram.encryptedContent,
     deleteOnDisplay
   })

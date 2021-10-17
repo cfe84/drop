@@ -85,7 +85,7 @@ export class DropServer {
     // Todo: validate payload
     try {
       const alias = Alias.getAlias()
-      client.alias = alias
+      client.alias = alias.toLocaleLowerCase()
       await this.db.createClientAsync(client)
       response = {
         result: "success",
@@ -98,7 +98,7 @@ export class DropServer {
   }
 
   async getClient(req: Express.Request, res: Express.Response) {
-    const alias = req.params["alias"]
+    const alias = req.params["alias"].toLocaleLowerCase()
     let response: QueryResult<Partial<Client>>
     try {
       const publicKey = await this.db.getClientPublicKeyAsync(alias)
@@ -127,7 +127,7 @@ export class DropServer {
       }
       const drops: Drop[] = dropRequest.toAliases.map(alias => ({
         cypherId: cypher.id,
-        toAlias: alias.alias,
+        toAlias: alias.alias.toLocaleLowerCase(),
         encryptedKey: alias.encryptedKey,
         fromAlias: dropRequest.fromAlias,
         deleteOnDisplay: dropRequest.deleteOnDisplay,
@@ -147,7 +147,7 @@ export class DropServer {
   }
 
   async getCompositeDrops(req: Express.Request, res: Express.Response) {
-    const forAlias = req.params["alias"]
+    const forAlias = req.params["alias"].toLocaleLowerCase()
     const passHeader = req.headers.authorization
     const PASSWORD_TYPE = "Password "
     const pass = (passHeader && passHeader.startsWith(PASSWORD_TYPE)) ? passHeader.substr(PASSWORD_TYPE.length) : ""

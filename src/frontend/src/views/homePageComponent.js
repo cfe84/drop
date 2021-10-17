@@ -59,7 +59,7 @@ export function homePageComponent({ client, onSendMessage, onDeregistered }) {
   refresh()
 
   const copyAliasBtn = html`<button class="btn btn-outline-secondary" type="button" id="button-addon2">Copy</button>`
-  copyAliasBtn.onclick = () => window.clipboardData.setData("Text", client.alias);
+  copyAliasBtn.onclick = () => navigator.clipboard.writeText(client.alias);
 
   return html`
 <div class="col-lg-8 mx-auto px-4 my-5 text-center">

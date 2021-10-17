@@ -4,7 +4,7 @@ const pick = (arr: string[]): string => {
 }
 export class Alias {
   static getAlias() {
-    return `${pick(adjectives)} ${pick(nouns)}`
+    return `${pick(adjectives).trim()} ${pick(nouns).trim()}`
   }
 }
 

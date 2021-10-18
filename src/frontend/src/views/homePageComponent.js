@@ -35,7 +35,7 @@ export function homePageComponent({ client, onSendMessage, onDeregistered }) {
 
   function onDeregisterConfirm() {
     if (confirm(`This will destroy your alias for ever! Are you sure?`)) {
-      deleteClientAsync(client).then(() => {
+      deleteClientAsync(client).finally(() => {
         cleanClient()
         onDeregistered()
       })

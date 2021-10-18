@@ -2,7 +2,7 @@ import { createElement, html } from "../html.js"
 import { header } from "./header.js"
 import { cleanClient } from "../client.js"
 import { getDecryptedDropsAsync } from "../drop.js"
-import { deleteDropAsync } from "../apiConnector.js"
+import { deleteClientAsync, deleteDropAsync } from "../apiConnector.js"
 
 export function homePageComponent({ client, onSendMessage, onDeregistered }) {
 
@@ -35,8 +35,10 @@ export function homePageComponent({ client, onSendMessage, onDeregistered }) {
 
   function onDeregisterConfirm() {
     if (confirm(`This will destroy your alias for ever! Are you sure?`)) {
-      cleanClient()
-      onDeregistered()
+      deleteClientAsync(client).then(() => {
+        cleanClient()
+        onDeregistered()
+      })
     }
   }
 

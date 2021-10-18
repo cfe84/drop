@@ -44,6 +44,7 @@ export class DropServer {
     app.post("/api/drops/", this.createDrop.bind(this))
     app.get("/api/clients/:alias/drops", this.getCompositeDrops.bind(this))
     app.delete("/api/clients/:alias/drops/:dropId", this.deleteDrop.bind(this))
+    app.delete("/api/clients/:alias", this.deleteClient.bind(this))
 
     this.app = app
   }
@@ -96,6 +97,15 @@ export class DropServer {
       response = this.handleDbError(err, res)
     }
     res.send(response)
+  }
+
+  async deleteClient(req: Express.Request, res: Express.Response) {
+    const alias = req.params["alias"].toLocaleLowerCase()
+    const passHeader = req.headers.authorization
+    const PASSWORD_TYPE = "Password "
+    const pass = (passHeader && passHeader.startsWith(PASSWORD_TYPE)) ? passHeader.substr(PASSWORD_TYPE.length) : ""
+    const drops = await this.db.getDropsAndCyphersAsync(alias, pass)
+    await Promise.all(drops.map(drop => this.db.deleteDropAsync(drop.dropId, alias, pass)))
   }
 
   async getClient(req: Express.Request, res: Express.Response) {

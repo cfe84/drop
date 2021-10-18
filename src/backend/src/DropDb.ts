@@ -46,9 +46,9 @@ export class DropDb implements IDropStorage {
 
   public async createDropAsync(drop: Drop): Promise<void> {
     await this.alterQuery(`INSERT INTO drops
-      (drop_id, from_alias, to_alias, encrypted_key, cypher_id)
-      VALUES(?, ?, ?, ?, ?)`,
-      drop.id, drop.fromAlias, drop.toAlias, drop.encryptedKey, drop.cypherId)
+      (drop_id, from_alias, to_alias, encrypted_key, cypher_id, public_key)
+      VALUES(?, ?, ?, ?, ?, ?)`,
+      drop.id, drop.fromAlias, drop.toAlias, drop.encryptedKey, drop.cypherId, drop.publicKey)
   }
 
   public async createCypherAsync(cypher: Cypher): Promise<void> {
@@ -75,7 +75,7 @@ export class DropDb implements IDropStorage {
     if (client.length !== 1) {
       throw Error(`Alias or password incorrect`)
     }
-    const rows = await this.select(`SELECT drop_id, from_alias, encrypted_key, encrypted_text, created_date, delete_on_display
+    const rows = await this.select(`SELECT drop_id, from_alias, encrypted_key, encrypted_text, created_date, delete_on_display, public_key
     FROM drops
     INNER JOIN cyphers ON drops.cypher_id = cyphers.cypher_id
     WHERE to_alias = ?`, alias)
@@ -85,7 +85,8 @@ export class DropDb implements IDropStorage {
       encryptedKey: row["encrypted_key"],
       encryptedText: row["encrypted_text"],
       createdDate: row["created_date"],
-      deleteOnDisplay: row["delete_on_display"]
+      deleteOnDisplay: row["delete_on_display"],
+      publicKey: row["public_key"]
     }))
     await Promise.all(drops.filter(drop => drop.deleteOnDisplay).map(drop => this.deleteDropAsync(drop.dropId, alias, pass)))
     return drops

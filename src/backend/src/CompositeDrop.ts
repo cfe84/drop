@@ -3,6 +3,7 @@ export interface CompositeDrop {
   fromAlias: string,
   encryptedKey: string,
   encryptedText: string,
+  publicKey?: string,
   createdDate: Date,
   deleteOnDisplay: boolean
 }

@@ -45,11 +45,12 @@ export async function getClientAsync(alias) {
   return client
 }
 
-export async function createDropAsync({ fromAlias, toAliases, deleteOnDisplay, encryptedContent }) {
+export async function createDropAsync({ fromAlias, publicKey, toAliases, deleteOnDisplay, encryptedContent }) {
   const dropContent = {
     fromAlias: fromAlias,
     encryptedText: encryptedContent,
     toAliases, // {alias, encryptedText}
+    publicKey,
     deleteOnDisplay
   }
   const drop = await sendQueryAsync(`drops`, "POST", dropContent)

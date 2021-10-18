@@ -161,6 +161,7 @@ export class DropFileStore implements IDropStorage {
       return {
         createdDate: cypher.createdDate,
         dropId,
+        publicKey: dropFile.drop.publicKey,
         encryptedKey: dropFile.drop.encryptedKey,
         encryptedText: cypher.encryptedText,
         fromAlias: dropFile.drop.fromAlias,

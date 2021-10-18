@@ -27,7 +27,8 @@ interface DropCreationRequest {
   toAliases: DropAlias[],
   fromAlias: string,
   encryptedText: string,
-  deleteOnDisplay: boolean
+  deleteOnDisplay: boolean,
+  publicKey?: string
 }
 
 export class DropServer {
@@ -131,6 +132,7 @@ export class DropServer {
         encryptedKey: alias.encryptedKey,
         fromAlias: dropRequest.fromAlias,
         deleteOnDisplay: dropRequest.deleteOnDisplay,
+        publicKey: dropRequest.publicKey,
         id: uuid()
       }))
       await this.db.createCypherAsync(cypher)

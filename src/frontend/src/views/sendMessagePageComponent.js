@@ -9,7 +9,8 @@ export function sendMessagePageComponent({ client, onBack }) {
 
   const aliasInput = html`<input type="text" class="form-control" placeholder="Alias" aria-label="Alias" />`
   const messageInput = html`<textarea class="form-control" rows="5" aria-label="With textarea"></textarea>`
-  const deleteOnDisplayInput = html`<input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault" />`
+  const deleteOnDisplayInput = html`<input class="form-check-input" type="checkbox" role="switch" id="deleteOnDisplay" />`
+  const sendAnonymouslyInput = html`<input class="form-check-input" type="checkbox" role="switch" id="sendAnonymously" />`
   const statusSpan = html`<div></div>`
 
   const setState = (enabled) => {
@@ -23,6 +24,8 @@ export function sendMessagePageComponent({ client, onBack }) {
     aliasInput.value = ""
     messageInput.value = ""
     statusSpan.innerHTML = ""
+    sendAnonymouslyInput.checked = false
+    deleteOnDisplayInput.checked = false
   }
 
   const sendMessage = () => {
@@ -30,7 +33,8 @@ export function sendMessagePageComponent({ client, onBack }) {
     const toAliases = aliasInput.value.split(",").map(alias => alias.trim())
     const message = messageInput.value
     const deleteOnDisplay = deleteOnDisplayInput.checked
-    sendEncryptedDropAsync(client, toAliases, message, deleteOnDisplay, (status) => statusSpan.innerHTML = status).then((res) => {
+    const sendAnonymously = sendAnonymouslyInput.checked
+    sendEncryptedDropAsync(client, toAliases, message, deleteOnDisplay, sendAnonymously, (status) => statusSpan.innerHTML = status).then((res) => {
       setState(true)
       if (res.result === "success") {
         clean()
@@ -74,7 +78,11 @@ export function sendMessagePageComponent({ client, onBack }) {
     </div>
     <div class="form-check form-switch text-start">
       ${deleteOnDisplayInput}
-      <label class="form-check-label" for="flexSwitchCheckDefault">Delete immediately after retrieval</label>
+      <label class="form-check-label" for="deleteOnDisplay">Delete immediately after retrieval</label>
+    </div>
+    <div class="form-check form-switch text-start">
+      ${sendAnonymouslyInput}
+      <label class="form-check-label" for="sendAnonymously">Send anonymously</label>
     </div>
     <br/>
     ${statusSpan}

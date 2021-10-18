@@ -10,7 +10,16 @@ export function sendMessagePageComponent({ client, onBack }) {
   const aliasInput = html`<input type="text" class="form-control" placeholder="Alias" aria-label="Alias" />`
   const messageInput = html`<textarea class="form-control" rows="5" aria-label="With textarea"></textarea>`
   const deleteOnDisplayInput = html`<input class="form-check-input" type="checkbox" role="switch" id="deleteOnDisplay" />`
+  const deleteOnDisplayHelp = html`<span>
+  The message will be deleted from system as soon as it is retrieved. Recipients can still copy and paste it, but it will
+  disappear as soon as they refresh the page.
+  </span>`
   const sendAnonymouslyInput = html`<input class="form-check-input" type="checkbox" role="switch" id="sendAnonymously" />`
+  const sendAnonymouslyHelp = html`<span>
+  A one-time-use private key will be used to encrypt KEK, and discarded immediately after you sent the message.
+  Your alias will be masked to the recipient. In addition to remaining anonymous, this also means that this message
+  can be retrieved only by the recipient.
+  </span>`
   const statusSpan = html`<div></div>`
 
   const setState = (enabled) => {

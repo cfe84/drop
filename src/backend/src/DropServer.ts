@@ -142,6 +142,7 @@ export class DropServer {
     const pass = (passHeader && passHeader.startsWith(PASSWORD_TYPE)) ? passHeader.substr(PASSWORD_TYPE.length) : ""
     const drops = await this.db.getDropsAndCyphersAsync(alias, pass)
     await Promise.all(drops.map(drop => this.db.deleteDropAsync(drop.dropId, alias, pass)))
+    await this.db.deactivateClientAsync(alias, pass)
     res.send({
       result: "success"
     })

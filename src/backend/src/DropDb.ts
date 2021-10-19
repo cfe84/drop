@@ -4,6 +4,7 @@ import { CompositeDrop } from "./CompositeDrop"
 import { Cypher } from "./Cypher"
 import { Drop } from "./Drop"
 import { IDropStorage } from "./IDropStorage"
+import { v4 as uuid } from "uuid"
 
 export class DropDb implements IDropStorage {
   private db: Database
@@ -110,5 +111,11 @@ export class DropDb implements IDropStorage {
       await this.alterQuery(`DELETE FROM cyphers
       WHERE id = ?`, cypherId)
     }
+  }
+
+  async deactivateClientAsync(alias: string, pass: string): Promise<void> {
+    await this.alterQuery(`UPDATE pass = ?
+    FROM clients
+    WHERE alias = ? AND pass = ?`, uuid(), alias, pass)
   }
 }

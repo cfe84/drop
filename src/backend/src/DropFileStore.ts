@@ -5,6 +5,7 @@ import { CompositeDrop } from "./CompositeDrop";
 import { Cypher } from "./Cypher";
 import { Drop } from "./Drop";
 import { IDropStorage } from "./IDropStorage";
+import { v4 as uuid } from "uuid"
 
 interface ClientFileContent {
   client: Client,
@@ -67,6 +68,15 @@ export class DropFileStore implements IDropStorage {
       dropIds: [],
       path: clientFilePath
     }
+    this.saveClientFile(clientFile)
+  }
+
+  async deactivateClientAsync(alias: string, pass: string): Promise<void> {
+    const clientFile = this.getClientFile(alias)
+    if (clientFile.client.pass !== pass) {
+      throw Error("Alias or password incorrect")
+    }
+    clientFile.client.pass = uuid() + uuid() + uuid()
     this.saveClientFile(clientFile)
   }
 

@@ -47,6 +47,10 @@ async function deserializeAESKeyAsync(key) {
   return res
 }
 
+function isFirefox() {
+  return navigator.userAgent.indexOf("Firefox") >= 0
+}
+
 /**
  * Deserialize a public or private ECDH key
  * @param {Serialized ECDH key, public or private} key 
@@ -54,13 +58,14 @@ async function deserializeAESKeyAsync(key) {
  */
 async function deserializeECDHKeyAsync(key) {
   const deserializedKey = await deserializeKeyAsync(key)
-  deserializedKey.key_ops = ["deriveKey"]
+  const key_ops = isFirefox() ? ["deriveKey"] : deserializedKey.key_ops
+  deserializedKey.key_ops = key_ops
   const res = await subtle.importKey(
     "jwk",
     deserializedKey,
     { name: "ECDH", namedCurve: EC_NAMED_CURVE },
     false,
-    ["deriveKey"])
+    key_ops)
   return res
 }
 

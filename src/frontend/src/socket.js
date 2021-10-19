@@ -1,7 +1,7 @@
 function tryConnect(alias, pass, obj) {
   let shouldReconnect = true
   console.log(`Attempt reconnecting to websocket...`)
-  const url = window.location.href.replace(/http(s)?/, "ws")
+  const url = window.location.href.replace(/http?/, "ws")
   try {
     const socket = new WebSocket(url)
     socket.onmessage = ((msg) => {

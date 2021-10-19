@@ -75,3 +75,4 @@ export async function deleteClientAsync({ alias, pass }) {
     authorization: `Password ${pass}`
   })
 }
+

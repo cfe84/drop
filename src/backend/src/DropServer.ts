@@ -1,4 +1,5 @@
 import * as Express from "express"
+import * as ws from "ws"
 import { Client } from "./Client";
 import { CompositeDrop } from "./CompositeDrop";
 import { Drop } from "./Drop";
@@ -33,6 +34,10 @@ interface DropCreationRequest {
 
 export class DropServer {
   private app: Express.Application;
+  private ws: ws.Server;
+  private sockets: {
+    [alias: string]: ws.WebSocket[]
+  } = {}
   constructor(private db: IDropStorage, private config: DropServerConfig) {
     const app = Express()
 
@@ -47,14 +52,45 @@ export class DropServer {
     app.delete("/api/clients/:alias", this.deleteClient.bind(this))
 
     this.app = app
+    this.ws = new ws.Server({ noServer: true })
+    this.ws.on("connection", this.onconnect.bind(this))
+  }
+
+  private onconnect(socket: ws.WebSocket) {
+    socket.once("message", (auth => {
+      const { alias, pass } = JSON.parse(auth.toString())
+      if (!this.sockets[alias]) {
+        this.sockets[alias] = []
+      }
+      this.sockets[alias].push(socket)
+      socket.on("close", (code, reason) => {
+        this.ondisconnect(alias, socket)
+      })
+    }))
+  }
+
+  private findSocketForAlias(alias: string) {
+    const sockets = this.sockets[alias]
+    return sockets
+  }
+
+  private ondisconnect(alias: string, socket: ws.WebSocket) {
+    const sockets = this.findSocketForAlias(alias)
+    const index = sockets.indexOf(socket)
+    sockets.splice(index)
   }
 
   startAsync(): Promise<void> {
     return new Promise((resolve) => {
-      this.app.listen(this.config.port, () => {
+      const server = this.app.listen(this.config.port, () => {
         console.log(`Listening on ${this.config.port}`)
         resolve()
       })
+      server.on('upgrade', (request, socket, head) => {
+        this.ws.handleUpgrade(request, socket as any, head, socket => {
+          this.ws.emit('connection', socket, request);
+        });
+      });
     })
   }
 
@@ -106,6 +142,9 @@ export class DropServer {
     const pass = (passHeader && passHeader.startsWith(PASSWORD_TYPE)) ? passHeader.substr(PASSWORD_TYPE.length) : ""
     const drops = await this.db.getDropsAndCyphersAsync(alias, pass)
     await Promise.all(drops.map(drop => this.db.deleteDropAsync(drop.dropId, alias, pass)))
+    res.send({
+      result: "success"
+    })
   }
 
   async getClient(req: Express.Request, res: Express.Response) {
@@ -124,6 +163,38 @@ export class DropServer {
       response = this.handleDbError(err, res)
     }
     res.send(response)
+  }
+
+  private mapToComposite(drop: Drop, cypher: Cypher): Partial<CompositeDrop> {
+    let encryptedKey = undefined
+    let encryptedText = undefined
+    let fromAlias = undefined
+    let publicKey = undefined
+    if (!drop.deleteOnDisplay) {
+      encryptedKey = drop.encryptedKey
+      encryptedText = cypher.encryptedText
+      fromAlias = drop.fromAlias
+      publicKey = drop.publicKey
+    }
+    return {
+      createdDate: cypher.createdDate,
+      deleteOnDisplay: drop.deleteOnDisplay,
+      dropId: drop.id,
+      encryptedKey,
+      encryptedText,
+      fromAlias: fromAlias,
+      publicKey: publicKey
+    }
+  }
+
+  private sendNotificationToSockets(drops: Drop[], cypher: Cypher) {
+    drops.forEach(drop => {
+      const sockets = this.findSocketForAlias(drop.toAlias)
+      const composite = this.mapToComposite(drop, cypher)
+      sockets.forEach((socket, i) => {
+        socket.send(JSON.stringify(composite))
+      })
+    })
   }
 
   async createDrop(req: Express.Request, res: Express.Response) {
@@ -147,6 +218,7 @@ export class DropServer {
       }))
       await this.db.createCypherAsync(cypher)
       await Promise.all(drops.map(drop => this.db.createDropAsync(drop)))
+      this.sendNotificationToSockets(drops, cypher)
 
       response = {
         result: "success",

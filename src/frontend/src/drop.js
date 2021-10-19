@@ -3,23 +3,28 @@ import { createDropAsync, getDropsAsync } from "./apiConnector.js"
 import { getClientAsync } from "./apiConnector.js"
 import { saveSenderAlias } from "./cache.js"
 
+export async function decryptDropAsync(client, drop) {
+  let key = drop.publicKey
+  if (!key) {
+    const sender = await getClientAsync(drop.fromAlias)
+    saveSenderAlias(sender.alias)
+    key = sender.publicKey
+  }
+  const decryptedContent = await decryptAsync(client.privateKey, key, drop.encryptedKey, drop.encryptedText)
+  return {
+    dropId: drop.dropId,
+    deleteOnDisplay: drop.deleteOnDisplay,
+    fromAlias: drop.fromAlias,
+    decryptedContent
+  }
+}
+
 export async function getDecryptedDropsAsync(client) {
   const drops = await getDropsAsync({ alias: client.alias, pass: client.pass })
   let res = []
   for (let drop of drops) {
-    let key = drop.publicKey
-    if (!key) {
-      const sender = await getClientAsync(drop.fromAlias)
-      saveSenderAlias(sender.alias)
-      key = sender.publicKey
-    }
-    const decryptedContent = await decryptAsync(client.privateKey, key, drop.encryptedKey, drop.encryptedText)
-    res.push({
-      dropId: drop.dropId,
-      deleteOnDisplay: drop.deleteOnDisplay,
-      fromAlias: drop.fromAlias,
-      decryptedContent
-    })
+    const decryptedDrop = await decryptDropAsync(client, drop)
+    res.push(decryptedDrop)
   }
   return res
 }

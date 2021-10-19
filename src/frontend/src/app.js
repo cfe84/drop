@@ -2,6 +2,7 @@ import { loadLocalClient } from './client.js';
 import { welcomePageComponent } from './views/welcomePageComponent.js';
 import { homePageComponent } from './views/homePageComponent.js';
 import { sendMessagePageComponent } from './views/sendMessagePageComponent.js';
+import { connectSocket } from './socket.js';
 
 function app() {
   const container = document.getElementById("container")
@@ -17,12 +18,22 @@ function app() {
 
   function run() {
     const client = loadLocalClient()
+
     if (client) {
+      const socket = connectSocket(client.alias, client.pass)
       const homePage = homePageComponent({
-        client, onSendMessage: () => {
-          const sendMessagePage = sendMessagePageComponent({ client, onBack: run })
+        client,
+        onSendMessage: () => {
+          const sendMessagePage = sendMessagePageComponent({
+            client,
+            onBack: () => {
+              load(homePage)
+            }
+          })
           load(sendMessagePage)
-        }, onDeregistered: run
+        },
+        onDeregistered: run,
+        socket
       })
       load(homePage)
     } else {

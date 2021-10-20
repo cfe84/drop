@@ -10,7 +10,8 @@ import { Alias } from "./Alias";
 
 export interface DropServerConfig {
   staticFolder: string,
-  port: number
+  port: number,
+  messageSizeLimit: number
 }
 
 interface QueryResult<T> {
@@ -94,15 +95,27 @@ export class DropServer {
     })
   }
 
-  private handleDbError(err: Error, res: Express.Response): QueryResult<any> {
+  private handleError(err: Error, res: Express.Response): QueryResult<any> {
     if (err.message.indexOf("UNIQUE") >= 0) {
       res.statusCode = 409
       return {
         result: "error",
-        error: "Alias already exists"
+        error: "A resource with the same ID already exists"
       }
     } else if (err.message.indexOf("not found") >= 0) {
       res.statusCode = 404
+      return {
+        result: "error",
+        error: err.message
+      }
+    } else if (err.message.indexOf("pass") >= 0) {
+      res.statusCode = 401
+      return {
+        result: "error",
+        error: err.message
+      }
+    } else if (err.message.indexOf("size") >= 0) {
+      res.statusCode = 413
       return {
         result: "error",
         error: err.message
@@ -130,7 +143,7 @@ export class DropServer {
         data: client
       }
     } catch (err: any) {
-      response = this.handleDbError(err, res)
+      response = this.handleError(err, res)
     }
     res.send(response)
   }
@@ -161,7 +174,7 @@ export class DropServer {
         }
       }
     } catch (err: any) {
-      response = this.handleDbError(err, res)
+      response = this.handleError(err, res)
     }
     res.send(response)
   }
@@ -191,10 +204,12 @@ export class DropServer {
   private sendNotificationToSockets(drops: Drop[], cypher: Cypher) {
     drops.forEach(drop => {
       const sockets = this.findSocketForAlias(drop.toAlias)
-      const composite = this.mapToComposite(drop, cypher)
-      sockets.forEach((socket, i) => {
-        socket.send(JSON.stringify(composite))
-      })
+      if (sockets) {
+        const composite = this.mapToComposite(drop, cypher)
+        sockets.forEach((socket, i) => {
+          socket.send(JSON.stringify(composite))
+        })
+      }
     })
   }
 
@@ -202,6 +217,11 @@ export class DropServer {
     const dropRequest = req.body as DropCreationRequest
     let response: QueryResult<Partial<CompositeDrop>>
     try {
+      const ivSize = 18
+      if (this.config.messageSizeLimit
+        && dropRequest.encryptedText.length - ivSize > this.config.messageSizeLimit * 4 / 3) {
+        throw Error("Maximum message size exceeded")
+      }
       const cypher: Cypher = {
         contentType: "text/plain",
         createdDate: new Date(),
@@ -226,7 +246,7 @@ export class DropServer {
         data: dropRequest
       }
     } catch (err: any) {
-      response = this.handleDbError(err, res)
+      response = this.handleError(err, res)
     }
     res.send(response)
   }
@@ -248,7 +268,7 @@ export class DropServer {
         data: res
       }
     } catch (err: any) {
-      response = this.handleDbError(err, res)
+      response = this.handleError(err, res)
     }
     res.send(response)
   }
@@ -267,7 +287,7 @@ export class DropServer {
         data: res
       }
     } catch (err: any) {
-      response = this.handleDbError(err, res)
+      response = this.handleError(err, res)
     }
     res.send(response)
   }

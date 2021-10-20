@@ -37,7 +37,7 @@ export function homePageComponent({ client, onSendMessage, onDeregistered, socke
       <div class="text-start py-3 lh-tight row">
         <div class="col-10">
           <div><strong class="mb-1">From ${fromAlias}</strong>: ${displayOnceWarning}</div>
-          <div>${content}</div>
+          <div class="text-break">${content}</div>
         </div>
         <div class="col align-middle">
           <button class="btn btn-outline-danger" onclick=${ondelete}>❌</button>

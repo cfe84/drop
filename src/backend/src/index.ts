@@ -9,6 +9,7 @@ dotenv.config()
 const dbFile = process.env.DB_FILE
 const storeFolder = process.env.STORE_FOLDER
 const staticFolder = process.env.STATIC_CONTENT || path.join("..", "frontend")
+const messageSizeLimit = Number.parseInt(process.env.SIZE_LIMIT_BYTES || "0")
 const port = Number.parseInt(process.env.PORT || "8080")
 
 let db: IDropStorage
@@ -19,5 +20,5 @@ if (storeFolder) {
 } else {
   throw Error("No storage configured")
 }
-const server = new DropServer(db, { staticFolder, port })
+const server = new DropServer(db, { staticFolder, port, messageSizeLimit })
 server.startAsync()

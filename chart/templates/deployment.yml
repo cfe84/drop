@@ -22,6 +22,8 @@ spec:
           value: "{{ .Values.dbFilePath }}"
         - name: STORE_FOLDER
           value: "{{ .Values.storeFolder }}"
+        - name: SIZE_LIMIT_BYTES
+          value: "10240"
         ports:
           - containerPort: 8080
         volumeMounts:

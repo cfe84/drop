@@ -32,7 +32,9 @@ export function homePageComponent({ client, onSendMessage, onDeregistered, socke
     const displayOnceWarning = deleteOnDisplay
       ? html`<span class="badge rounded-pill bg-danger">Displayed only once</span>`
       : html`<span></span>`
-
+    const deleteButton = deleteOnDisplay
+      ? html`<span></span>`
+      : html`<button class="btn btn-outline-danger" onclick=${ondelete}>❌</button>`
     return html`
       <div class="text-start py-3 lh-tight row">
         <div class="col-10">
@@ -40,7 +42,7 @@ export function homePageComponent({ client, onSendMessage, onDeregistered, socke
           <div class="text-break">${content}</div>
         </div>
         <div class="col align-middle">
-          <button class="btn btn-outline-danger" onclick=${ondelete}>❌</button>
+          ${deleteButton}
         </div>
       </div>
   `

@@ -4,6 +4,39 @@ const decoder = new TextDecoder()
 const toB64 = btoa
 const fromB64 = atob
 
+const UIntArrayToB64 = (arr) => {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+  let res = ""
+
+  for (let i = 0; i < arr.length; i += 3) {
+    const b1 = arr[i]
+    const b2 = i + 1 < arr.length ? arr[i + 1] : 0
+    const b3 = i + 2 < arr.length ? arr[i + 2] : 0
+    const n1 = b1 >>> 2
+    const n2 = ((b1 & 3) << 4) + (b2 >>> 4)
+    const n3 = ((b2 & 15) << 2) + (b3 >>> 6)
+    const n4 = b3 & 63
+    const [c1, c2, c3, c4] = [
+      chars[n1],
+      chars[n2],
+      i + 1 < arr.length ? chars[n3] : "=",
+      i + 2 < arr.length ? chars[n4] : "="]
+    res += `${c1}${c2}${c3}${c4}`
+  }
+  return res;
+}
+
+const b64ToUIntArray = (base64) => {
+  var raw = window.atob(base64);
+  var rawLength = raw.length;
+  var array = new Uint8Array(rawLength);
+
+  for (let i = 0; i < rawLength; i++) {
+    array[i] = raw.charCodeAt(i)
+  }
+  return array;
+}
+
 const AES_KEY_LENGTH = 256
 const AES_TAG_LENGTH = 128
 const AES_IV_LENGTH = 12
@@ -96,7 +129,7 @@ export async function createKeyPairAsync() {
 export function createPass() {
   const passLength = Math.ceil(120 + Math.random() * 10)
   const array = window.crypto.getRandomValues(new Uint32Array(passLength));
-  return toB64(array)
+  return UIntArrayToB64(array)
 }
 
 /**
@@ -128,8 +161,9 @@ async function encryptContentAsync(content, encryptionKey = null) {
 
   const iv = window.crypto.getRandomValues(new Uint8Array(AES_IV_LENGTH))
   const encrypted = await subtle.encrypt({ name: "AES-GCM", tagLength: AES_TAG_LENGTH, iv }, encryptionKey, bytes)
-  const encryptedContent = new Uint8Array(encrypted).join("|")
-  const encodedIv = iv.join("|")
+  const array = new Uint8Array(encrypted)
+  const encryptedContent = UIntArrayToB64(array)
+  const encodedIv = UIntArrayToB64(iv)
   const serializedContent = encryptedContent + "," + encodedIv
   return {
     serializedContent,
@@ -201,8 +235,9 @@ async function decryptContentAsync(contentEncryptionKey, serializedContent) {
   const splat = serializedContent.split(",")
   const encryptedContent = splat[0]
   const encodedIv = splat[1]
-  const iv = new Uint8Array(encodedIv.split("|"))
-  const encryptedBuffer = new Uint8Array(encryptedContent.split("|").map(e => Number.parseInt(e)))
+  const iv = b64ToUIntArray(encodedIv)
+  const encryptedBuffer = b64ToUIntArray(encryptedContent)
+
   const decrypted = await subtle.decrypt({ name: "AES-GCM", tagLength: AES_TAG_LENGTH, iv }, contentEncryptionKey, encryptedBuffer)
   const decryptedContent = decoder.decode(decrypted)
   return decryptedContent

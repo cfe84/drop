@@ -88,10 +88,11 @@ actor from trying to register a similar alias to one existing.
 A public certificate is hard to communicate, an alias can be given through phone, copied
 manually on paper, and so on. This is much handier when you want to ask someone to send
 you something. However its main downside is that it is not cryptographic material, it's
-only a pointer to the public key. If the server gets compromised, the public key might
+only a pointer to the public key. If the dataplane of the server gets compromised, the public key might
 get altered, breaking the strength of the cryptographic tunnel. Drop tries to mitigate
-that _somewhat_ by caching the public key for clients you already communicated with,
-which would prevent the alteration of the key to actually impact you. See also 
+that by caching the public key for clients you already communicated with,
+which prevents the alteration of the key to have an impact for channels already in
+flight. See also 
 [resilience](#resilience).
 
 The other flaw of using such an alias is that it needs to be communicated through a channel
@@ -100,14 +101,36 @@ the entire communication channel moot.
 
 ## Resilience
 
-The client is only cached using the standard browser features. If the server gets
-compromised, it may start serving compromised code, weaken encryption and break the
-secured channel. As such, Drop is not very resilient. More could be done to, for example,
-cache code programmatically, and raise alerts when a new version gets served. Native,
-non-web based clients could also be built, which are by nature more resilient than a
-web interface. That is, however, the line that I drew to this project.
+Drop is a webapp, and as such it has a large dependency on the backend, which is the main
+weak point of Drop. Given the encryption scheme, a leak limited at the data level are
+is not a concern. The real problem arises if the server becomes controlled by a
+malicious actor.
+
+If a malicious actor gains full control to the server, they can serve an altered 
+version of the client, which could for example stop validating message senders' keys
+and serve false information; or access and transmit the private key, breaking
+the entire encryption channel.
+
+The solution is to secure the client. The only preventative measure used by Drop is to
+control caching on the browser itself. Drop attempts to signal the browser that the
+client itself does not expire, and that it should not be refreshed. That means that
+delivering sofwtare updates is harder (people need to manually force-refresh the client),
+but it maximizes the resilience we can achieve in browser. Ideally, the private key
+could be stored locally in a secured store. Short of that, cache control is, as far
+as I know, the only thing we can do about that.
+
+The other obvious point is not to fully trust a deaddrop you don't own, and perform some audits
+if what you're sending is mission critical. That includes 1) network, seeing if the
+client seems to be sending messages it ought not to, 2) the code itself, in particular
+validating that the message is properly encrypted and that there's no more localStorage
+access than should be required.
+
+Native, non-web based clients, which are by nature more resilient than a web
+interface, are the solution. That is, however, the line that I drew to this project.
 
 ## Auditability
+
+## Forensics
 
 Even if the server remains untouched, it still runs on architecture and through
 the internet. You leave traces on everything you touch - firewalls, load balancer,

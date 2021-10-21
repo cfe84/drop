@@ -4,6 +4,7 @@ import { Cypher } from "./Cypher";
 import { Drop } from "./Drop";
 
 export interface IDropStorage {
+  checkClientPassAsync(alias: string, pass: string): Promise<boolean>
   createClientAsync(client: Client): Promise<void>
   createDropAsync(drop: Drop): Promise<void>
   createCypherAsync(cypher: Cypher): Promise<void>

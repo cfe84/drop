@@ -44,28 +44,34 @@ export class DropServer {
 
     app.use(Express.static(config.staticFolder))
     app.use(Express.json())
+    app.post("/api/drops/", this.createDrop.bind(this))
     app.post("/api/clients", this.createClient.bind(this))
     app.get("/api/clients/:alias", this.getClient.bind(this))
-    app.post("/api/clients/:alias/drops", this.createDrop.bind(this))
-    app.post("/api/drops/", this.createDrop.bind(this))
     app.get("/api/clients/:alias/drops", this.getCompositeDrops.bind(this))
+    app.post("/api/clients/:alias/drops", this.createDrop.bind(this))
     app.delete("/api/clients/:alias/drops/:dropId", this.deleteDrop.bind(this))
     app.delete("/api/clients/:alias", this.deleteClient.bind(this))
 
     this.app = app
     this.ws = new ws.Server({ noServer: true })
-    this.ws.on("connection", this.onconnect.bind(this))
+    this.ws.on("connection", this.onSocketConnection.bind(this))
   }
 
-  private onconnect(socket: ws.WebSocket) {
+  private onSocketConnection(socket: ws.WebSocket) {
     socket.once("message", (auth => {
       const { alias, pass } = JSON.parse(auth.toString())
-      if (!this.sockets[alias]) {
-        this.sockets[alias] = []
-      }
-      this.sockets[alias].push(socket)
-      socket.on("close", (code, reason) => {
-        this.ondisconnect(alias, socket)
+      this.db.checkClientPassAsync(alias, pass).then(passChecks => {
+        if (!passChecks) {
+          socket.close(403, "Unauthorized")
+          return
+        }
+        if (!this.sockets[alias]) {
+          this.sockets[alias] = []
+        }
+        this.sockets[alias].push(socket)
+        socket.on("close", (code, reason) => {
+          this.onSocketDisconnect(alias, socket)
+        })
       })
     }))
   }
@@ -75,7 +81,7 @@ export class DropServer {
     return sockets
   }
 
-  private ondisconnect(alias: string, socket: ws.WebSocket) {
+  private onSocketDisconnect(alias: string, socket: ws.WebSocket) {
     const sockets = this.findSocketForAlias(alias)
     const index = sockets.indexOf(socket)
     sockets.splice(index)
@@ -87,6 +93,7 @@ export class DropServer {
         console.log(`Listening on ${this.config.port}`)
         resolve()
       })
+      // Handle websocket
       server.on('upgrade', (request, socket, head) => {
         this.ws.handleUpgrade(request, socket as any, head, socket => {
           this.ws.emit('connection', socket, request);
@@ -133,7 +140,6 @@ export class DropServer {
   async createClient(req: Express.Request, res: Express.Response) {
     const client = req.body as Client
     let response: QueryResult<Client>
-    // Todo: validate payload
     try {
       const alias = Alias.getAlias()
       client.alias = alias.toLocaleLowerCase()

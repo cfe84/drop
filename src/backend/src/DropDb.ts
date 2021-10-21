@@ -69,6 +69,13 @@ export class DropDb implements IDropStorage {
     return rows[0]["public_key"]
   }
 
+  public async checkClientPassAsync(alias: string, pass: string): Promise<boolean> {
+    const rows = await this.select(`SELECT public_key
+      FROM clients
+      WHERE alias = ? and pass = ?`, alias, pass)
+    return rows.length === 1
+  }
+
   public async getDropsAndCyphersAsync(alias: string, pass: string): Promise<CompositeDrop[]> {
     const client = await this.select(`SELECT alias
       FROM clients

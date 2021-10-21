@@ -156,6 +156,11 @@ export class DropFileStore implements IDropStorage {
     return clientFile.client.publicKey
   }
 
+  async checkClientPassAsync(alias: string, pass: string): Promise<boolean> {
+    const clientFile = this.getClientFile(alias)
+    return clientFile.client.pass === pass
+  }
+
   private validatePassword(client: Client, pass: string) {
     if (client.pass !== pass) {
       throw Error("Alias or password incorrect")

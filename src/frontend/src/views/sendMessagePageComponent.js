@@ -3,10 +3,7 @@ import { header } from "./header.js"
 import { sendEncryptedDropAsync } from "../drop.js"
 import { getSendersAliases } from "../cache.js"
 
-
-
 export function sendMessagePageComponent({ client, onBack }) {
-
   const aliasInput = html`<input type="text" class="form-control" placeholder="Alias" aria-label="Alias" />`
   const messageInput = html`<textarea class="form-control" rows="5" aria-label="With textarea"></textarea>`
   const deleteOnDisplayInput = html`<input class="form-check-input" type="checkbox" role="switch" id="deleteOnDisplay" />`

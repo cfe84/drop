@@ -1,10 +1,11 @@
-import { createClientAsync } from "./apiConnector.js";
+import { createClientAsync, getClientAsync } from "./apiConnector.js";
 import { createKeyPairAsync, createPass } from "./encryption.js";
 
 const PRIVATE_KEY_KEY = "drop.privateKey"
 const PUBLIC_KEY_KEY = "drop.publicKey"
 const ALIAS_KEY = "drop.alias"
 const PASS_KEY = "drop.pass"
+const CLIENT = "drop.client"
 
 export function loadLocalClient() {
   const privateKey = localStorage.getItem(PRIVATE_KEY_KEY)
@@ -46,4 +47,15 @@ function getClientObject(privateKey, publicKey, pass, alias) {
 
 export function cleanClient() {
   localStorage.clear()
+}
+
+export async function getClientPublicKeyAsync(alias) {
+  const storageKey = `${CLIENT}.${alias}.publicKey`
+  let publicKey = localStorage.getItem(storageKey)
+  if (!publicKey) {
+    const client = await getClientAsync(alias)
+    publicKey = client.publicKey
+    localStorage.setItem(storageKey, publicKey)
+  }
+  return publicKey
 }

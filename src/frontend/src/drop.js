@@ -1,14 +1,14 @@
 import { createKeyPairAsync, decryptAsync, encryptAsync } from "./encryption.js"
 import { createDropAsync, getDropsAsync } from "./apiConnector.js"
-import { getClientAsync } from "./apiConnector.js"
 import { saveSenderAlias } from "./cache.js"
+import { getClientPublicKeyAsync } from "./client.js"
 
 export async function decryptDropAsync(client, drop) {
   let key = drop.publicKey
   if (!key) {
-    const sender = await getClientAsync(drop.fromAlias)
-    saveSenderAlias(sender.alias)
-    key = sender.publicKey
+    const publicKey = await getClientPublicKeyAsync(drop.fromAlias)
+    saveSenderAlias(drop.fromAlias)
+    key = publicKey
   }
   const decryptedContent = await decryptAsync(client.privateKey, key, drop.encryptedKey, drop.encryptedText)
   return {
@@ -29,25 +29,17 @@ export async function getDecryptedDropsAsync(client) {
   return res
 }
 
-async function getClientKeyAsync(alias) {
-  try {
-    const key = await getClientAsync(alias)
-    return key
-  } catch (err) {
-
-  }
-}
-
 export async function sendEncryptedDropAsync(client, toAliases, message, deleteOnDisplay, sendAnonymously, onStateChanged = (state) => { }) {
   onStateChanged("Getting public keys")
   const keysAndAliases = await Promise.all(toAliases.map(async (alias) => {
-    const key = await getClientKeyAsync(alias)
+    const key = await getClientPublicKeyAsync(alias)
     if (!key) {
       onStateChanged(`Key ${alias} doesn't exist`)
       return null
     }
+    saveSenderAlias(alias)
     return {
-      key: key.publicKey,
+      key,
       alias
     }
   }))
@@ -70,15 +62,23 @@ export async function sendEncryptedDropAsync(client, toAliases, message, deleteO
   onStateChanged("Encrypting text")
   const cryptogram = await encryptAsync(keysAndAliases, privateKey, message)
   onStateChanged("Uploading drop")
-  const drop = await createDropAsync({
-    fromAlias,
-    toAliases: cryptogram.encryptedKeys,
-    encryptedContent: cryptogram.encryptedContent,
-    publicKey,
-    deleteOnDisplay
-  })
-  return {
-    result: "success",
-    drop
+  try {
+    const drop = await createDropAsync({
+      fromAlias,
+      toAliases: cryptogram.encryptedKeys,
+      encryptedContent: cryptogram.encryptedContent,
+      publicKey,
+      deleteOnDisplay
+    })
+    return {
+      result: "success",
+      drop
+    }
+  } catch (err) {
+    return {
+      result: "failed",
+      error: err
+    }
   }
+
 }

@@ -28,7 +28,7 @@ export function homePageComponent({ client, onSendMessage, onDeregistered, socke
 
     decryptedContent = decryptedContent.replace(/\n/, "<br/>")
     const content = createElement("small")
-    content.innerHTML = decryptedContent
+    content.innerHTML = decryptedContent.replace(/</g, "&lt;").replace(/>/g, "&gt;")
     const displayOnceWarning = deleteOnDisplay
       ? html`<span class="badge rounded-pill bg-danger">Displayed only once</span>`
       : html`<span></span>`

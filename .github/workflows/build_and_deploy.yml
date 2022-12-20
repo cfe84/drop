@@ -16,13 +16,6 @@ jobs:
           login-server: hub.docker.com
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-      - name: Set AKS context
-        uses: azure/aks-set-context@v1
-        with:
-          # create with `az ad sp create-for-rbac --sdk-auth --name drop-deploy`
-          creds: '${{ secrets.AZURE_CREDENTIALS }}'
-          cluster-name: ${{ secrets.AZURE_CLUSTER_NAME }}
-          resource-group: ${{ secrets.AZURE_RESOURCE_GROUP }}
       - uses: actions/checkout@v2
             # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Build and push
@@ -32,7 +25,15 @@ jobs:
           context: ./src/
           file: ./src/Dockerfile
           push: true
-          tags: charles.azurecr.io/${{ secrets.DOCKER_IMAGE_NAME}}:${{ github.sha }}
-      - name: Deploy to kubernetes
-        run: |
-          helm template ./chart --set hostname=${{ secrets.HOSTNAME }} --set imageVersion=${{ github.sha }} | kubectl apply -f -
+          tags: cfe84/${{ secrets.DOCKER_IMAGE_NAME}}:${{ github.sha }}
+          
+#       - name: Set AKS context
+#         uses: azure/aks-set-context@v1
+#         with:
+#           # create with `az ad sp create-for-rbac --sdk-auth --name drop-deploy`
+#           creds: '${{ secrets.AZURE_CREDENTIALS }}'
+#           cluster-name: ${{ secrets.AZURE_CLUSTER_NAME }}
+#           resource-group: ${{ secrets.AZURE_RESOURCE_GROUP }}
+#       - name: Deploy to kubernetes
+#         run: |
+#           helm template ./chart --set hostname=${{ secrets.HOSTNAME }} --set imageVersion=${{ github.sha }} | kubectl apply -f -

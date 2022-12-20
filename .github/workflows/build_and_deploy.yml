@@ -24,7 +24,7 @@ jobs:
           context: ./src/
           file: ./src/Dockerfile
           push: true
-          tags: cfe84/${{ secrets.DOCKER_IMAGE_NAME}}:${{ github.sha }}
+          tags: cfe84/${{ secrets.DOCKER_IMAGE_NAME}}:${{ github.sha }},cfe84/${{ secrets.DOCKER_IMAGE_NAME}}:latest
           
 #       - name: Set AKS context
 #         uses: azure/aks-set-context@v1

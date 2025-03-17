@@ -3,8 +3,8 @@ import { header } from "./header.js"
 import { sendEncryptedDropAsync } from "../drop.js"
 import { getSendersAliases } from "../cache.js"
 
-export function sendMessagePageComponent({ client, onBack }) {
-  const aliasInput = html`<input type="text" class="form-control" placeholder="Alias" aria-label="Alias" />`
+export function sendMessagePageComponent({ client, onBack, sendTo }) {
+  const aliasInput = html`<input type="text" class="form-control" placeholder="Alias" aria-label="Alias" value="${sendTo}" />`
   const messageInput = html`<textarea class="form-control" rows="5" aria-label="With textarea"></textarea>`
   const deleteOnDisplayInput = html`<input class="form-check-input" type="checkbox" role="switch" id="deleteOnDisplay" />`
   const deleteOnDisplayHelp = html`<span>
@@ -34,19 +34,18 @@ export function sendMessagePageComponent({ client, onBack }) {
     deleteOnDisplayInput.checked = false
   }
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     setState(false)
     const toAliases = aliasInput.value.split(",").map(alias => alias.trim())
     const message = messageInput.value
     const deleteOnDisplay = deleteOnDisplayInput.checked
     const sendAnonymously = sendAnonymouslyInput.checked
-    sendEncryptedDropAsync(client, toAliases, message, deleteOnDisplay, sendAnonymously, (status) => statusSpan.innerHTML = status).then((res) => {
-      setState(true)
-      if (res.result === "success") {
-        clean()
-        onBack()
-      }
-    })
+    const res = await sendEncryptedDropAsync(client, toAliases, message, deleteOnDisplay, sendAnonymously, (status) => statusSpan.innerHTML = status)
+    setState(true)
+    if (res.result === "success") {
+      clean()
+      onBack()
+    }
   }
 
   const cancel = () => {
@@ -57,7 +56,7 @@ export function sendMessagePageComponent({ client, onBack }) {
   const sendersElements = getSendersAliases().map(alias => {
     const selectSender = () => {
       if (aliasInput.value.length > 0) {
-        aliasInput.value += ", "
+        aliasInput.value += ", ";
       }
       aliasInput.value += alias
       senders.removeChild(elt)

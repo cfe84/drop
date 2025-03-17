@@ -1,4 +1,4 @@
-import { loadLocalClient } from './client.js';
+import { loadLocalClient, registerAsClientAsync } from './client.js';
 import { welcomePageComponent } from './views/welcomePageComponent.js';
 import { homePageComponent } from './views/homePageComponent.js';
 import { sendMessagePageComponent } from './views/sendMessagePageComponent.js';
@@ -16,33 +16,44 @@ function app() {
     container.appendChild(main)
   }
 
-  function run() {
-    const client = loadLocalClient()
+  function getSendToParameter() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('sendTo');
+  }
 
-    if (client) {
-      const socket = connectSocket(client.alias, client.pass)
-      const homePage = homePageComponent({
+  async function run() {
+    let client = loadLocalClient();
+    if (!client) {
+      await registerAsClientAsync();
+      client = loadLocalClient();
+    }
+
+    const socket = connectSocket(client.alias, client.pass);
+    const onSendMessage = (sendTo = "") => {
+      const sendMessagePage = sendMessagePageComponent({
         client,
-        onSendMessage: () => {
-          const sendMessagePage = sendMessagePageComponent({
-            client,
-            onBack: () => {
-              load(homePage)
-            }
-          })
-          load(sendMessagePage)
-        },
-        onDeregistered: run,
-        socket
+        sendTo,
+        onBack: () => {
+          load(homePage)
+        }
       })
-      load(homePage)
+      load(sendMessagePage)
+    };
+    const homePage = homePageComponent({
+      client,
+      onSendMessage,
+      onDeregistered: run,
+      socket
+    });
+    const sendTo = getSendToParameter();
+    if (sendTo) {
+      onSendMessage(sendTo);
     } else {
-      const welcomePage = welcomePageComponent({ onRegistered: run })
-      load(welcomePage)
+      load(homePage);
     }
   }
 
-  run()
+  run().then();
 }
 
 

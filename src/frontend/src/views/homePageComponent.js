@@ -84,8 +84,11 @@ export function homePageComponent({ client, onSendMessage, onDeregistered, socke
 
   refresh()
 
+  const url = `${window.location.href}?sendTo=${encodeURIComponent(client.alias)}`;
   const copyAliasBtn = html`<button class="btn btn-outline-secondary" type="button" id="button-addon2">Copy</button>`
   copyAliasBtn.onclick = () => navigator.clipboard.writeText(client.alias);
+  const copyUrlBtn = html`<button class="btn btn-outline-secondary" type="button" id="button-addon2">Copy</button>`
+  copyUrlBtn.onclick = () => navigator.clipboard.writeText(url);
 
   return html`
 <div class="col-lg-8 mx-auto px-4 my-5 text-center">
@@ -95,8 +98,13 @@ export function homePageComponent({ client, onSendMessage, onDeregistered, socke
   </div>
   <p class="lead mb-4 pt-4">This browser's alias:</p>
   <div class="input-group">
-    <input type="text" class="form-control text-center" readonly aria-describedby="button-addon2" value=${client.alias}/>
+    <input type="text" class="form-control text-center" readonly aria-describedby="button-addon2" value="${client.alias}"/>
     ${copyAliasBtn}
+  </div>
+  <p class="lead mb-4 pt-4">To get someone to send you a message:</p>
+  <div class="input-group">
+    <input type="text" class="form-control text-center" readonly aria-describedby="button-addon2" value="${url}"/>
+    ${copyUrlBtn}
   </div>
   <div>
     <p class="lead mb-4 pt-4">Your messages: <button class="btn btn-outline-secondary" onclick=${refresh}>⭮</button></p>

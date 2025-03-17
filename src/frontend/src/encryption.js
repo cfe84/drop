@@ -91,7 +91,7 @@ function isFirefox() {
  */
 async function deserializeECDHKeyAsync(key) {
   const deserializedKey = await deserializeKeyAsync(key)
-  const key_ops = isFirefox() ? ["deriveKey"] : deserializedKey.key_ops
+  const key_ops = deserializedKey.key_ops
   deserializedKey.key_ops = key_ops
   const res = await subtle.importKey(
     "jwk",
